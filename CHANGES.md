@@ -1,6 +1,10 @@
 Resty CHANGES
 =============
 
+### Version 2.0 (2012-11-06)
+
+* Complete reimplementation in perl because this doesn't actually work in zsh at all
+
 ### Version 1.5 (2011-03-20)
 
 * Curl options can now be specified when calling the resty command to set
