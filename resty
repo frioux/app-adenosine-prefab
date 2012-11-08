@@ -13,7 +13,6 @@ use File::Spec::Functions 'splitpath';
 my $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 my $quote = 1;
 my $history = 1;
-my $preprocess_output = 1;
 my $interactive_edit = 0;
 my $query = '';
 my $verbose = 0;
@@ -24,7 +23,6 @@ GetOptions (
    "q=s" => \$query,
    W     => sub { $history = 0 },
    V     => \$interactive_edit,
-   Z     => sub { $preprocess_output = 0 },
    v     => sub { $verbose = 1 },
 );
 
@@ -51,7 +49,6 @@ if ($action =~ m/^$verb_regex$/) {
    push @extra, '--data-binary' if $data;
    if ($action eq 'HEAD') {
       push @extra, '-I';
-      $preprocess_output = 0;
    }
 
    use Devel::Dwarn;
@@ -76,8 +73,6 @@ if ($action =~ m/^$verb_regex$/) {
    my ($out, $err, $ret) = capture { system(@curl) };
    my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
    print STDERR $err if $err && $verbose;
-   my $preprocessor;
-   $preprocessor = 'html2text' if !$preprocess_output && $err =~ m<^\s+Content-Type: +text/html>;
    $out .= "\n" unless $out =~ m/\n\Z/m;
    print $out;
    exit if $http_code == 2;
