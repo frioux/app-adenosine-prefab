@@ -1,0 +1,27 @@
+function HEAD() {
+  resty HEAD "$@"
+}
+
+function OPTIONS() {
+  resty OPTIONS "$@"
+}
+
+function GET() {
+  resty GET "$@"
+}
+
+function POST() {
+  resty POST "$@"
+}
+
+function PUT() {
+  resty PUT "$@"
+}
+
+function DELETE() {
+  resty DELETE "$@"
+}
+
+function TRACE() {
+  resty TRACE "$@"
+}
