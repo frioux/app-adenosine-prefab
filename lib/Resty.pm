@@ -26,7 +26,18 @@ sub new {
    my $interactive_edit = 0;
    my $query = '';
    $self->{verbose} = 0;
-   my $data;
+
+   my $action = shift @ARGV;
+   my $path = '';
+   my $data = '';
+
+   my $done;
+
+   $done++ if !$done && $ARGV[0] =~ /^-/;
+
+   $path = shift @ARGV unless $done;
+   $done++ if !$done && $ARGV[0] =~ /^-/;
+   $data = shift @ARGV unless $done;
 
    GetOptions (
       Q     => sub { $quote = 0 },
@@ -37,14 +48,11 @@ sub new {
    );
 
    chomp(my $uri_base = load_uri_base());
-   my $action = shift @ARGV;
-   my $path = shift @ARGV || '';
-   $data ||= shift @ARGV if @ARGV;
 
    print("$uri_base\n"), exit if !$action;
 
    if ($action =~ m/^$verb_regex$/) {
-      my @extra;
+      my @extra = @ARGV;
       my $wantdata;
       $wantdata = 1 if $action =~ m/^(?:PUT|POST|TRACE)$/;
       if ($wantdata && $interactive_edit) {
