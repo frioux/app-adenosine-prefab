@@ -63,13 +63,15 @@ if ($action =~ m/^$verb_regex$/) {
 
    push @extra, host_method_config( host($uri_base), $action );
 
-   my @curl = @{Dwarn(curl_command({
+   my @curl = @{curl_command({
       method => $action,
       data   => $data,
       cookie_jar => cookie_jar($uri_base),
       rest => \@extra,
       location => "$_path$query",
-   }))};
+   })};
+
+   warn join(" ", @curl) . "\n" if $verbose;
 
    my ($out, $err, $ret) = capture { system(@curl) };
    my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
