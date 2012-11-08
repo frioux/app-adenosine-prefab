@@ -60,6 +60,8 @@ if ($action =~ m/^$verb_regex$/) {
 
    push @extra, host_method_config( host($uri_base), $action );
 
+   $query = "?$query" if $query;
+
    my @curl = @{curl_command({
       method => $action,
       data   => $data,
