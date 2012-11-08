@@ -10,6 +10,8 @@ use File::Spec::Functions 'splitpath';
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 
+sub verbose { $_[0]->{verbose} }
+
 sub new {
    my ($class, $args) = @_;
 
@@ -23,7 +25,7 @@ sub new {
    my $history = 1;
    my $interactive_edit = 0;
    my $query = '';
-   my $verbose = 0;
+   $self->{verbose} = 0;
    my $data;
 
    GetOptions (
@@ -31,7 +33,7 @@ sub new {
       "q=s" => \$query,
       W     => sub { $history = 0 },
       V     => \$interactive_edit,
-      v     => sub { $verbose = 1 },
+      v     => sub { $self->{verbose} = 1 },
    );
 
    chomp(my $uri_base = load_uri_base());
@@ -78,15 +80,10 @@ sub new {
          location => "$_path$query",
       })};
 
-      warn join(" ", @curl) . "\n" if $verbose;
+      warn join(" ", @curl) . "\n" if $self->verbose;
 
       my ($out, $err, $ret) = $self->capture_curl(@curl);
-      my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
-      print STDERR $err if $err && $verbose;
-      $out .= "\n" unless $out =~ m/\n\Z/m;
-      print $out;
-      exit if $http_code == 2;
-      exit $http_code;
+      $self->handle_curl_output($out, $err, $ret);
    } else {
       store_uri_base($action);
       chomp(my $uri_base = load_uri_base());
@@ -99,6 +96,17 @@ sub capture_curl {
 
    require Capture::Tiny;
    Capture::Tiny::capture(sub { system(@rest) });
+}
+
+sub handle_curl_output {
+   my ($self, $out, $err, $ret) = @_;
+
+   my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
+   print STDERR $err if $err && $self->verbose;
+   $out .= "\n" unless $out =~ m/\n\Z/m;
+   print $out;
+   exit if $http_code == 2;
+   exit $http_code;
 }
 
 sub argv { $_[0]->{argv} }
