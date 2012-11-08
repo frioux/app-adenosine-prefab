@@ -6,7 +6,6 @@ use warnings;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 use File::Path 'mkpath';
 use URI::Escape 'uri_escape';
-use Capture::Tiny 'capture';
 use File::Spec::Functions 'splitpath';
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
@@ -81,7 +80,7 @@ sub new {
 
       warn join(" ", @curl) . "\n" if $verbose;
 
-      my ($out, $err, $ret) = capture { system(@curl) };
+      my ($out, $err, $ret) = $self->capture_curl(@curl);
       my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
       print STDERR $err if $err && $verbose;
       $out .= "\n" unless $out =~ m/\n\Z/m;
@@ -93,6 +92,13 @@ sub new {
       chomp(my $uri_base = load_uri_base());
       print("$uri_base\n"), exit
    }
+}
+
+sub capture_curl {
+   my ($self, @rest) = @_;
+
+   require Capture::Tiny;
+   Capture::Tiny::capture(sub { system(@rest) });
 }
 
 sub argv { $_[0]->{argv} }
