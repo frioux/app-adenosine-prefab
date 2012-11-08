@@ -44,6 +44,9 @@ BEGIN {
    use base 'Resty';
 
    our @curl_options;
+   our $exit_code;
+   our $stdout = '';
+   our $stderr = '';
 
    sub capture_curl {
       my $self = shift;
@@ -52,7 +55,9 @@ BEGIN {
       return ('', '', 0);
    }
 
-   sub exit {}
+   sub exit { $exit_code = shift }
+   sub stdout { $stdout .= shift }
+   sub stderr { $stderr .= shift }
 }
 
 # to capture: stdout, stderr, return code, curl command

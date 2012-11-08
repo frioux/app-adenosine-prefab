@@ -49,7 +49,7 @@ sub new {
 
    chomp(my $uri_base = load_uri_base());
 
-   print("$uri_base\n"), $self->exit if !$action;
+   $self->stdout("$uri_base\n"), $self->exit if !$action;
 
    if ($action =~ m/^$verb_regex$/) {
       my @extra = @ARGV;
@@ -95,10 +95,12 @@ sub new {
    } else {
       store_uri_base($action);
       chomp(my $uri_base = load_uri_base());
-      print("$uri_base\n"), $self->exit
+      $self->stdout("$uri_base\n"), $self->exit
    }
 }
 
+sub stdout { print STDOUT shift }
+sub stderr { print STDERR shift }
 sub exit { CORE::exit($_[0] || 0) }
 
 sub capture_curl {
@@ -112,9 +114,9 @@ sub handle_curl_output {
    my ($self, $out, $err, $ret) = @_;
 
    my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
-   print STDERR $err if $err && $self->verbose;
+   $self->stderr($err) if $err && $self->verbose;
    $out .= "\n" unless $out =~ m/\n\Z/m;
-   print $out;
+   $self->stdout($out);
    $self->exit if $http_code == 2;
    $self->exit($http_code);
 }
