@@ -8,13 +8,12 @@ use Test::Deep;
 use Devel::Dwarn;
 
 TestResty->new({ argv => ['http://google.com'] });
-Dwarn \@TestResty::curl_options;
-
+ok(0, "untested");
 TestResty->new({ argv => ['google.com'] });
-Dwarn \@TestResty::curl_options;
+ok(0, "untested");
 
 TestResty->new({ argv => ['https://google.com/user/*/1'] });
-Dwarn \@TestResty::curl_options;
+ok(0, "untested");
 
 TestResty->new({ argv => ['GET'] });
 cmp_deeply(\@TestResty::curl_options, [
@@ -26,11 +25,11 @@ cmp_deeply(\@TestResty::curl_options, [
    qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com https://google.com/user/1/1),
 ], 'GET 1');
 
-TestResty->new({ argv => [qw(POST /), '{"foo":"bar"}'] });
-Dwarn \@TestResty::curl_options;
-
-TestResty->new({ argv => [qw(POST /), '{"foo":"bar"}'] });
-Dwarn \@TestResty::curl_options;
+TestResty->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
+cmp_deeply(\@TestResty::curl_options, [
+   qw(curl -sLv {"foo":"bar"} -X POST -b /home/frew/.resty/c/google.com
+      --data-binary https://google.com/user/2/1),
+], 'POST 2 $data');
 
 done_testing;
 

@@ -28,16 +28,11 @@ sub new {
    $self->{verbose} = 0;
 
    my $action = shift @ARGV;
-   my $path = '';
-   my $data = '';
+   my $path   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
+   my $data   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
 
-   my $done;
-
-   $done++ if !$done && $ARGV[0] =~ /^-/;
-
-   $path = shift @ARGV unless $done;
-   $done++ if !$done && $ARGV[0] =~ /^-/;
-   $data = shift @ARGV unless $done;
+   $path ||= '';
+   $data ||= '';
 
    GetOptions (
       Q     => sub { $quote = 0 },
@@ -65,11 +60,7 @@ sub new {
       }
 
       push @extra, '--data-binary' if $data;
-      if ($action eq 'HEAD') {
-         push @extra, '-I';
-      }
-
-      use Devel::Dwarn;
+      push @extra, '-I' if $action eq 'HEAD';
 
       my $_path = $uri_base;
       $_path =~ s/\*/$path/;
@@ -99,8 +90,8 @@ sub new {
    }
 }
 
-sub stdout { print STDOUT shift }
-sub stderr { print STDERR shift }
+sub stdout { print STDOUT $_[1] }
+sub stderr { print STDERR $_[1] }
 sub exit { CORE::exit($_[0] || 0) }
 
 sub capture_curl {
