@@ -8,6 +8,7 @@ use List::Util 'first';
 use File::Path 'mkpath';
 use URI::Escape 'uri_escape';
 use Capture::Tiny 'tee', 'capture';
+use File::Spec::Functions 'splitpath';
 
 my $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 my $quote = 1;
@@ -118,9 +119,7 @@ sub curl_command {
 }
 
 sub cookie_jar {
-   my $ret = config_location() . '/c/' . host($_[0]);
-   #mkpath($ret) unless -d $ret;
-   return $ret;
+   _touch(config_location() . '/c/' . host($_[0]))
 }
 
 sub host_method_config {
@@ -130,9 +129,9 @@ sub host_method_config {
       m/\s*($verb_regex)\s+(.*)/
          ? ($1, $2)
          : ()
-   } split /\n/, slurp(config_location() . "/$host") || '';
+   } split /\n/, slurp(_touch(config_location() . "/$host")) || '';
 
-   return split /\s+/, $config{$method}
+   return split /\s+/, $config{$method} || ""
 }
 
 sub host {
@@ -142,4 +141,12 @@ sub host {
    $ret =~ s(/.*)()g;
    $ret =~ s(\*)();
    return $ret
+}
+
+sub _touch {
+   my $path = shift;
+   my ($drive, $dir, $file) = splitpath($path);
+   mkpath("$drive/$dir") unless -d "$drive/$dir";
+   open my $fh, '>>', $path unless -f $path;
+   return $path
 }
