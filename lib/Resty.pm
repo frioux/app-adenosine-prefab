@@ -44,7 +44,7 @@ sub new {
       v     => sub { $self->{verbose} = 1 },
    );
 
-   my $uri_base = $self->config->uri_base;
+   my $uri_base = $self->config->uri_base->GET;
 
    $self->stdout("$uri_base\n"), return if !$action;
 
@@ -141,7 +141,7 @@ sub store_uri_base {
    my ($self, $base) = @_;
    $base .= '*' unless $base =~ /\*/;
    $base = "http://$base" unless $base =~ m(^https?://);
-   $self->config->uri_base($base);
+   $self->config->uri_base->SET($base);
 }
 
 sub curl_command {
@@ -165,7 +165,7 @@ sub cookie_jar {
 sub host_method_config {
    my ($self, $host, $method) = @_;
 
-   @{$self->config->HIVE($host, $method)}
+   @{$self->config->HIVE($host, $method)->GET}
 }
 
 sub host { URI->new($_[1])->host }

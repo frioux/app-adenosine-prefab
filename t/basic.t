@@ -73,11 +73,14 @@ BEGIN {
    use strict;
    use warnings;
 
+   use Data::Hive;
+   use Data::Hive::Store::Hash;
    use MRO::Compat;
 
    use lib 'lib';
    use base 'Resty';
 
+   our $config = Data::Hive->NEW({ store_class => 'Hash' });
    our @curl_options;
    our $stdout = '';
    our $stderr = '';
@@ -92,6 +95,8 @@ BEGIN {
 
       $self->next::method(@_)
    }
+
+   sub _build_config { $config }
 
    sub capture_curl {
       my $self = shift;
