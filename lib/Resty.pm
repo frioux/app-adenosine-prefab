@@ -4,11 +4,11 @@ use strict;
 use warnings;
 
 use URI;
-use Resty::Config;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 use File::Path 'mkpath';
 use URI::Escape 'uri_escape';
 use File::Spec::Functions 'splitpath';
+use Path::Class;
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 
@@ -91,16 +91,18 @@ sub new {
    }
 }
 
-sub config { return($_[0]->{storage} ||= $_[0]->_build_config)  }
-
-sub _build_config {
+sub config_location {
    my $loc;
    if (my $h = $ENV{XDG_CONFIG_HOME}) {
       $loc = "$h/resty"
    } else {
       $loc = "$ENV{HOME}/.resty"
    }
-   Resty::Config->new($loc)
+   my $ret = dir($loc);
+
+   $ret->mkpath unless -d $ret->stringify;
+
+   $ret
 }
 
 sub stdout { print STDOUT $_[1] }
@@ -126,26 +128,19 @@ sub handle_curl_output {
 
 sub argv { $_[0]->{argv} }
 
-sub config_location {
-   my $loc;
-   if (my $h = $ENV{XDG_CONFIG_HOME}) {
-      $loc = "$h/resty"
-   } else {
-      $loc = "$ENV{HOME}/.resty"
-   }
-   mkpath($loc) unless -d $loc;
-   return $loc;
-}
-
 sub uri_base {
    my ($self, $base) = @_;
+
+   my $file = $self->config_location->file('host');
+
    if ($base) {
       $base .= '*' unless $base =~ /\*/;
       $base = "http://$base" unless $base =~ m(^https?://);
-      $self->config->uri_base($base);
+      $file->touch unless -f $file->stringify;
+      $file->spew($base);
       return $base
    } else {
-      $self->config->uri_base
+      ($file->slurp(chomp => 1))[0]
    }
 }
 
@@ -158,19 +153,31 @@ sub curl_command {
 
 sub cookie_jar {
    my ($self, $uri) = @_;
-   my $path = $self->config_location . '/c/' . $self->host($uri);
+   my $cookie_dir = $self->config_location->subdir('c');
+   $cookie_dir->mkpath;
+   my $path = $cookie_dir->file($self->host($uri));
 
-   my ($drive, $dir, $file) = splitpath($path);
-   mkpath("$drive/$dir") unless -d "$drive/$dir";
-   open my $fh, '>>', $path unless -f $path;
+   $path->touch unless -f $path->stringify;
 
-   return $path
+   return $path->stringify;
 }
 
 sub host_method_config {
    my ($self, $host, $method) = @_;
 
-   @{$self->config->HIVE($host, $method)}
+   my $file = $self->config_location->file($host);
+   $file->touch unless -f $file->stringify;
+
+   my %config = map {
+      m/\s*(\w+)\s+(.*)/
+         ? (uc($1), $2)
+         : ()
+   } $file->slurp(chomp => 1);
+
+   if (my $ret = $config{$method}) {
+      return ( split /\s+/, $ret )
+   }
+   return ()
 }
 
 sub host { URI->new($_[1])->host }
