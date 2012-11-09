@@ -3,6 +3,7 @@ package Resty;
 use strict;
 use warnings;
 
+use Resty::Config;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 use File::Path 'mkpath';
 use URI::Escape 'uri_escape';
@@ -42,7 +43,7 @@ sub new {
       v     => sub { $self->{verbose} = 1 },
    );
 
-   chomp(my $uri_base = load_uri_base());
+   my $uri_base = $self->config->uri_base;
 
    $self->stdout("$uri_base\n"), return if !$action;
 
@@ -67,14 +68,14 @@ sub new {
 
       $query = uri_escape($query) if $quote;
 
-      push @extra, host_method_config( host($uri_base), $action );
+      push @extra, $self->host_method_config( $self->host($uri_base), $action );
 
       $query = "?$query" if $query;
 
       my @curl = @{curl_command({
          method => $action,
          data   => $data,
-         cookie_jar => cookie_jar($uri_base),
+         cookie_jar => $self->cookie_jar($uri_base),
          rest => \@extra,
          location => "$_path$query",
       })};
@@ -84,10 +85,21 @@ sub new {
       my ($out, $err, $ret) = $self->capture_curl(@curl);
       return $self->handle_curl_output($out, $err, $ret);
    } else {
-      store_uri_base($action);
-      chomp(my $uri_base = load_uri_base());
+      my $uri_base = $self->store_uri_base($action);
       $self->stdout("$uri_base\n"), return
    }
+}
+
+sub config { return($_[0]->{storage} ||= $_[0]->_build_config)  }
+
+sub _build_config {
+   my $loc;
+   if (my $h = $ENV{XDG_CONFIG_HOME}) {
+      $loc = "$h/resty"
+   } else {
+      $loc = "$ENV{HOME}/.resty"
+   }
+   Resty::Config->new($loc)
 }
 
 sub stdout { print STDOUT $_[1] }
@@ -124,19 +136,12 @@ sub config_location {
    return $loc;
 }
 
-sub host_location { config_location() . '/host' }
-
-sub load_uri_base { slurp(host_location()) }
-
 sub store_uri_base {
-   my ($base) = @_;
+   my ($self, $base) = @_;
    $base .= '*' unless $base =~ /\*/;
    $base = "http://$base" unless $base =~ m(^https?://);
-   open my $fh, '>', host_location();
-   print {$fh} $base;
+   $self->config->uri_base($base);
 }
-
-sub slurp { do { local (@ARGV, $/) = $_[0]; <> } }
 
 sub curl_command {
    my %arg = %{$_[0]};
@@ -146,36 +151,29 @@ sub curl_command {
 }
 
 sub cookie_jar {
-   _touch(config_location() . '/c/' . host($_[0]))
+   my ($self, $uri) = @_;
+   my $path = $self->config_location . '/c/' . $self->host($uri);
+
+   my ($drive, $dir, $file) = splitpath($path);
+   mkpath("$drive/$dir") unless -d "$drive/$dir";
+   open my $fh, '>>', $path unless -f $path;
+
+   return $path
 }
 
 sub host_method_config {
-   my ($host, $method) = @_;
+   my ($self, $host, $method) = @_;
 
-   my %config = map {
-      m/\s*($verb_regex)\s+(.*)/
-         ? ($1, $2)
-         : ()
-   } split /\n/, slurp(_touch(config_location() . "/$host")) || '';
-
-   return split /\s+/, $config{$method} || ""
+   @{$self->config->HIVE($host, $method)}
 }
 
 sub host {
-   my $ret = $_[0];
+   my $ret = $_[1] || '';
 
    $ret =~ s(^\w+://)();
    $ret =~ s(/.*)()g;
    $ret =~ s(\*)();
    return $ret
-}
-
-sub _touch {
-   my $path = shift;
-   my ($drive, $dir, $file) = splitpath($path);
-   mkpath("$drive/$dir") unless -d "$drive/$dir";
-   open my $fh, '>>', $path unless -f $path;
-   return $path
 }
 
 1;
