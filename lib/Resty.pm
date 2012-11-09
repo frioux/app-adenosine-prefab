@@ -3,6 +3,7 @@ package Resty;
 use strict;
 use warnings;
 
+use URI;
 use Resty::Config;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 use File::Path 'mkpath';
@@ -167,13 +168,6 @@ sub host_method_config {
    @{$self->config->HIVE($host, $method)}
 }
 
-sub host {
-   my $ret = $_[1] || '';
-
-   $ret =~ s(^\w+://)();
-   $ret =~ s(/.*)()g;
-   $ret =~ s(\*)();
-   return $ret
-}
+sub host { URI->new($_[1])->host }
 
 1;
