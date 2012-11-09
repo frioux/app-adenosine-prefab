@@ -9,15 +9,18 @@ use Devel::Dwarn;
 
 TestResty->new({ argv => ['http://google.com'] });
 is($TestResty::stdout, "http://google.com*\n", 'http no *');
+is($TestResty::uri_base, "http://google.com*", 'uri_base set');
 
 TestResty->new({ argv => ['google.com'] });
 is($TestResty::stdout, "http://google.com*\n", 'just domain');
+is($TestResty::uri_base, "http://google.com*", 'uri_base set');
 
 TestResty->new({ argv => [] });
 is($TestResty::stdout, "http://google.com*\n", 'no args');
 
 TestResty->new({ argv => ['https://google.com/user/*/1'] });
 is($TestResty::stdout, "https://google.com/user/*/1\n", 'https + *');
+is($TestResty::uri_base, "https://google.com/user/*/1", 'uri_base set');
 
 $TestResty::curl_stderr = <<'BLUUU';
 * About to connect() to google.com port 80 (#0)
@@ -38,13 +41,18 @@ $TestResty::curl_stderr = <<'BLUUU';
 * Closing connection #0
 BLUUU
 
+%TestResty::host_config = ( 'google.com' => <<'CONFIG' );
+ GET -H 'Accept: text/html'
+ POST -u foo:bar
+CONFIG
+
 $TestResty::curl_stdout = <<'BLUU2';
 {"some":"json"}
 BLUU2
 
 my $exit_code = TestResty->new({ argv => ['GET'] });
 cmp_deeply(\@TestResty::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com https://google.com/user//1),
+   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ), 'Accept: text/html', 'https://google.com/user//1',
 ], 'GET');
 is($TestResty::stdout, $TestResty::curl_stdout, 'output the right stuff!');
 
@@ -53,16 +61,16 @@ ok(!$exit_code, '200 means exit with 0');
 $TestResty::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
 $exit_code = TestResty->new({ argv => [qw(GET 1 -v)] });
 cmp_deeply(\@TestResty::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com https://google.com/user/1/1),
+   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ), 'Accept: text/html', 'https://google.com/user/1/1',
 ], 'GET 1');
 is($exit_code, 5, '500 exits correctly');
-is($TestResty::stderr, "curl -sLv -X GET -b /home/frew/.resty/c/google.com https://google.com/user/1/1
+is($TestResty::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '/home/frew/.resty/c/google.com' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
 $TestResty::curl_stderr", '-v works');
 
 TestResty->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
 cmp_deeply(\@TestResty::curl_options, [
    qw(curl -sLv {"foo":"bar"} -X POST -b /home/frew/.resty/c/google.com
-      --data-binary https://google.com/user/2/1),
+      --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
 
 done_testing;
@@ -83,6 +91,12 @@ BEGIN {
    our $stderr = '';
    our $curl_stderr;
    our $curl_stdout;
+   our $uri_base;
+   our %host_config;
+
+   sub _set_uri_base { $uri_base = $_[1] }
+   sub _get_uri_base { $uri_base }
+   sub _load_host_method_config { split /\n/, $host_config{$_[1] || ''} }
 
    sub new {
       my $self = shift;

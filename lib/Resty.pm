@@ -9,6 +9,7 @@ use File::Path 'mkpath';
 use URI::Escape 'uri_escape';
 use File::Spec::Functions 'splitpath';
 use Path::Class;
+use Text::ParseWords;
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 
@@ -81,7 +82,7 @@ sub new {
          location => "$_path$query",
       })};
 
-      $self->stderr(join(" ", @curl) . "\n") if $self->verbose;
+      $self->stderr(join(" ", map "'$_'", @curl) . "\n") if $self->verbose;
 
       my ($out, $err, $ret) = $self->capture_curl(@curl);
       return $self->handle_curl_output($out, $err, $ret);
@@ -131,17 +132,30 @@ sub argv { $_[0]->{argv} }
 sub uri_base {
    my ($self, $base) = @_;
 
-   my $file = $self->config_location->file('host');
-
    if ($base) {
       $base .= '*' unless $base =~ /\*/;
       $base = "http://$base" unless $base =~ m(^https?://);
-      $file->touch unless -f $file->stringify;
-      $file->spew($base);
+      $self->_set_uri_base($base);
       return $base
    } else {
-      ($file->slurp(chomp => 1))[0]
+      $self->_get_uri_base
    }
+}
+
+sub _set_uri_base {
+   my ($self, $base) = @_;
+
+   my $file = $self->config_location->file('host');
+
+   $file->touch unless -f $file->stringify;
+   $file->spew($base);
+}
+
+sub _get_uri_base {
+   my $self = shift;
+
+   my $file = $self->config_location->file('host');
+   ($file->slurp(chomp => 1))[0]
 }
 
 sub curl_command {
@@ -162,20 +176,25 @@ sub cookie_jar {
    return $path->stringify;
 }
 
-sub host_method_config {
-   my ($self, $host, $method) = @_;
+sub _load_host_method_config {
+   my ($self, $host) = @_;
 
    my $file = $self->config_location->file($host);
    $file->touch unless -f $file->stringify;
+   $file->slurp(chomp => 1);
+}
+
+sub host_method_config {
+   my ($self, $host, $method) = @_;
 
    my %config = map {
-      m/\s*(\w+)\s+(.*)/
+      m/^\s*($verb_regex)\s+(.*)/
          ? (uc($1), $2)
          : ()
-   } $file->slurp(chomp => 1);
+   } $self->_load_host_method_config($host);
 
    if (my $ret = $config{$method}) {
-      return ( split /\s+/, $ret )
+      return ( shellwords($ret) )
    }
    return ()
 }
