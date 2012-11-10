@@ -92,6 +92,18 @@ cmp_deeply(\@TestResty::curl_options, [
      -u -I https://google.com/user//1),
 ], 'HEAD adds -I');
 
+TestResty->new({ argv => [qw(GET -q foo&bar)] });
+cmp_deeply(\@TestResty::curl_options, [
+   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ),
+      'Accept: text/html', 'https://google.com/user//1?foo%26bar',
+], 'GET escaped');
+
+TestResty->new({ argv => [qw(GET -Q -q foo&bar)] });
+cmp_deeply(\@TestResty::curl_options, [
+   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ),
+      'Accept: text/html', 'https://google.com/user//1?foo&bar',
+], 'GET not escaped');
+
 done_testing;
 
 BEGIN {
