@@ -24,12 +24,6 @@ sub new {
 
    local @ARGV = @{$self->argv};
 
-   my $quote = 1;
-   my $history = 1;
-   my $interactive_edit = 0;
-   my $query = '';
-   $self->{verbose} = 0;
-
    my $action = shift @ARGV;
 
    my $uri_base = $self->uri_base;
@@ -37,8 +31,15 @@ sub new {
    $self->stdout("$uri_base\n"), return if !$action;
 
    if ($action =~ m/^$verb_regex$/) {
-      my $path   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
-      my $data   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
+      my $quote = 1;
+      my $history = 1;
+      my $interactive_edit = 0;
+      my $query = '';
+      $self->{verbose} = 0;
+
+      my ($path, $data);
+      $path   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
+      $data   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
 
       $path ||= '';
       $data ||= '';
@@ -60,7 +61,8 @@ sub new {
 
          system($ENV{EDITOR} || 'vi', $fn);
 
-         $data = slurp($fn);
+         $data = file($fn)->slurp;
+         unlink $fn;
       }
 
       push @extra, '--data-binary' if $data;

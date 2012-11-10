@@ -5,7 +5,9 @@ use warnings;
 
 use Test::More;
 use Test::Deep;
-use Devel::Dwarn;
+
+$ENV{PATH} = "t/bin:$ENV{PATH}";
+$ENV{EDITOR} = 'bluh';
 
 TestResty->new({ argv => ['http://google.com'] });
 is($TestResty::stdout, "http://google.com*\n", 'http no *');
@@ -47,6 +49,7 @@ BLUUU
 
 %TestResty::host_config = ( 'google.com' => <<'CONFIG' );
  GET -H 'Accept: text/html'
+
  POST -u foo:bar
 CONFIG
 
@@ -76,6 +79,18 @@ cmp_deeply(\@TestResty::curl_options, [
    qw(curl -sLv {"foo":"bar"} -X POST -b /home/frew/.resty/c/google.com
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
+
+TestResty->new({ argv => [qw(POST 2), '-V'] });
+cmp_deeply(\@TestResty::curl_options, [
+   qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b /home/frew/.resty/c/google.com
+      --data-binary -u foo:bar https://google.com/user/2/1),
+], 'POST -V $data');
+
+TestResty->new({ argv => [qw(HEAD -u)] });
+cmp_deeply(\@TestResty::curl_options, [
+   qw(curl -sLv -X HEAD -b /home/frew/.resty/c/google.com
+     -u -I https://google.com/user//1),
+], 'HEAD adds -I');
 
 done_testing;
 
