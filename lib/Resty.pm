@@ -31,26 +31,27 @@ sub new {
    $self->{verbose} = 0;
 
    my $action = shift @ARGV;
-   my $path   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
-   my $data   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
-
-   $path ||= '';
-   $data ||= '';
-
-   GetOptions (
-      Q     => sub { $quote = 0 },
-      "q=s" => \$query,
-      W     => sub { $history = 0 },
-      V     => \$interactive_edit,
-      v     => sub { $self->{verbose} = 1 },
-   );
 
    my $uri_base = $self->uri_base;
 
    $self->stdout("$uri_base\n"), return if !$action;
 
    if ($action =~ m/^$verb_regex$/) {
-      my @extra = @ARGV;
+      my $path   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
+      my $data   = shift @ARGV unless $ARGV[0] && $ARGV[0] =~ /^-/;
+
+      $path ||= '';
+      $data ||= '';
+
+      GetOptions (
+         Q     => sub { $quote = 0 },
+         "q=s" => \$query,
+         W     => sub { $history = 0 },
+         V     => \$interactive_edit,
+         v     => sub { $self->{verbose} = 1 },
+      );
+
+      my @extra = (@ARGV, $self->_get_extra_options);
       my $wantdata;
       $wantdata = 1 if $action =~ m/^(?:PUT|POST|TRACE)$/;
       if ($wantdata && $interactive_edit) {
@@ -88,6 +89,7 @@ sub new {
       return $self->handle_curl_output($out, $err, $ret);
    } else {
       my $uri_base = $self->uri_base($action);
+      $self->_set_extra_options(@ARGV);
       $self->stdout("$uri_base\n"), return
    }
 }
@@ -156,6 +158,22 @@ sub _get_uri_base {
 
    my $file = $self->config_location->file('host');
    ($file->slurp(chomp => 1))[0]
+}
+
+sub _set_extra_options {
+   my ($self, @rest) = @_;
+
+   my $file = $self->config_location->file('options');
+
+   $file->touch unless -f $file->stringify;
+   $file->spew(@rest);
+}
+
+sub _get_extra_options {
+   my $self = shift;
+
+   my $file = $self->config_location->file('options');
+   $file->slurp(chomp => 1)
 }
 
 sub curl_command {

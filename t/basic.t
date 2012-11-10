@@ -10,17 +10,21 @@ use Devel::Dwarn;
 TestResty->new({ argv => ['http://google.com'] });
 is($TestResty::stdout, "http://google.com*\n", 'http no *');
 is($TestResty::uri_base, "http://google.com*", 'uri_base set');
+cmp_deeply(\@TestResty::extra_options, [], 'extra options set');
 
-TestResty->new({ argv => ['google.com'] });
+TestResty->new({ argv => ['google.com', '-v', '-H', 'Foo: Bar'] });
 is($TestResty::stdout, "http://google.com*\n", 'just domain');
 is($TestResty::uri_base, "http://google.com*", 'uri_base set');
+cmp_deeply(\@TestResty::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options set');
 
 TestResty->new({ argv => [] });
 is($TestResty::stdout, "http://google.com*\n", 'no args');
+cmp_deeply(\@TestResty::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options remain');
 
 TestResty->new({ argv => ['https://google.com/user/*/1'] });
 is($TestResty::stdout, "https://google.com/user/*/1\n", 'https + *');
 is($TestResty::uri_base, "https://google.com/user/*/1", 'uri_base set');
+cmp_deeply(\@TestResty::extra_options, [], 'extra options cleared');
 
 $TestResty::curl_stderr = <<'BLUUU';
 * About to connect() to google.com port 80 (#0)
@@ -93,6 +97,7 @@ BEGIN {
    our $curl_stdout;
    our $uri_base;
    our %host_config;
+   our @extra_options;
 
    sub _set_uri_base { $uri_base = $_[1] }
    sub _get_uri_base { $uri_base }
@@ -116,6 +121,9 @@ BEGIN {
 
    sub stdout { $stdout .= $_[1] }
    sub stderr { $stderr .= $_[1] }
+
+   sub _set_extra_options { my $self = shift; @extra_options = @_ }
+   sub _get_extra_options { @extra_options }
 }
 
 # to capture: config
