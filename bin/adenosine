@@ -1,0 +1,10 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use rlib;
+
+use App::Adenosine;
+
+App::Adenosine->new({ argv => \@ARGV });

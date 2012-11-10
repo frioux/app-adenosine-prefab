@@ -9,26 +9,26 @@ use Test::Deep;
 $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
 
-TestResty->new({ argv => ['http://google.com'] });
-is($TestResty::stdout, "http://google.com*\n", 'http no *');
-is($TestResty::uri_base, "http://google.com*", 'uri_base set');
-cmp_deeply(\@TestResty::extra_options, [], 'extra options set');
+TestAdenosine->new({ argv => ['http://google.com'] });
+is($TestAdenosine::stdout, "http://google.com*\n", 'http no *');
+is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
+cmp_deeply(\@TestAdenosine::extra_options, [], 'extra options set');
 
-TestResty->new({ argv => ['google.com', '-v', '-H', 'Foo: Bar'] });
-is($TestResty::stdout, "http://google.com*\n", 'just domain');
-is($TestResty::uri_base, "http://google.com*", 'uri_base set');
-cmp_deeply(\@TestResty::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options set');
+TestAdenosine->new({ argv => ['google.com', '-v', '-H', 'Foo: Bar'] });
+is($TestAdenosine::stdout, "http://google.com*\n", 'just domain');
+is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
+cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options set');
 
-TestResty->new({ argv => [] });
-is($TestResty::stdout, "http://google.com*\n", 'no args');
-cmp_deeply(\@TestResty::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options remain');
+TestAdenosine->new({ argv => [] });
+is($TestAdenosine::stdout, "http://google.com*\n", 'no args');
+cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options remain');
 
-TestResty->new({ argv => ['https://google.com/user/*/1'] });
-is($TestResty::stdout, "https://google.com/user/*/1\n", 'https + *');
-is($TestResty::uri_base, "https://google.com/user/*/1", 'uri_base set');
-cmp_deeply(\@TestResty::extra_options, [], 'extra options cleared');
+TestAdenosine->new({ argv => ['https://google.com/user/*/1'] });
+is($TestAdenosine::stdout, "https://google.com/user/*/1\n", 'https + *');
+is($TestAdenosine::uri_base, "https://google.com/user/*/1", 'uri_base set');
+cmp_deeply(\@TestAdenosine::extra_options, [], 'extra options cleared');
 
-$TestResty::curl_stderr = <<'BLUUU';
+$TestAdenosine::curl_stderr = <<'BLUUU';
 * About to connect() to google.com port 80 (#0)
 *   Trying 167.10.21.20... connected
 > HEAD / HTTP/1.1
@@ -47,59 +47,59 @@ $TestResty::curl_stderr = <<'BLUUU';
 * Closing connection #0
 BLUUU
 
-%TestResty::host_config = ( 'google.com' => <<'CONFIG' );
+%TestAdenosine::host_config = ( 'google.com' => <<'CONFIG' );
  GET -H 'Accept: text/html'
 
  POST -u foo:bar
 CONFIG
 
-$TestResty::curl_stdout = <<'BLUU2';
+$TestAdenosine::curl_stdout = <<'BLUU2';
 {"some":"json"}
 BLUU2
 
-my $exit_code = TestResty->new({ argv => ['GET'] });
-cmp_deeply(\@TestResty::curl_options, [
+my $exit_code = TestAdenosine->new({ argv => ['GET'] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ), 'Accept: text/html', 'https://google.com/user//1',
 ], 'GET');
-is($TestResty::stdout, $TestResty::curl_stdout, 'output the right stuff!');
+is($TestAdenosine::stdout, $TestAdenosine::curl_stdout, 'output the right stuff!');
 
 ok(!$exit_code, '200 means exit with 0');
 
-$TestResty::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
-$exit_code = TestResty->new({ argv => [qw(GET 1 -v)] });
-cmp_deeply(\@TestResty::curl_options, [
+$TestAdenosine::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
+$exit_code = TestAdenosine->new({ argv => [qw(GET 1 -v)] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ), 'Accept: text/html', 'https://google.com/user/1/1',
 ], 'GET 1');
 is($exit_code, 5, '500 exits correctly');
-is($TestResty::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '/home/frew/.resty/c/google.com' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
-$TestResty::curl_stderr", '-v works');
+is($TestAdenosine::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '/home/frew/.resty/c/google.com' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
+$TestAdenosine::curl_stderr", '-v works');
 
-TestResty->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
-cmp_deeply(\@TestResty::curl_options, [
+TestAdenosine->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv {"foo":"bar"} -X POST -b /home/frew/.resty/c/google.com
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
 
-TestResty->new({ argv => [qw(POST 2), '-V'] });
-cmp_deeply(\@TestResty::curl_options, [
+TestAdenosine->new({ argv => [qw(POST 2), '-V'] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b /home/frew/.resty/c/google.com
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST -V $data');
 
-TestResty->new({ argv => [qw(HEAD -u)] });
-cmp_deeply(\@TestResty::curl_options, [
+TestAdenosine->new({ argv => [qw(HEAD -u)] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X HEAD -b /home/frew/.resty/c/google.com
      -u -I https://google.com/user//1),
 ], 'HEAD adds -I');
 
-TestResty->new({ argv => [qw(GET -q foo&bar)] });
-cmp_deeply(\@TestResty::curl_options, [
+TestAdenosine->new({ argv => [qw(GET -q foo&bar)] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ),
       'Accept: text/html', 'https://google.com/user//1?foo%26bar',
 ], 'GET escaped');
 
-TestResty->new({ argv => [qw(GET -Q -q foo&bar)] });
-cmp_deeply(\@TestResty::curl_options, [
+TestAdenosine->new({ argv => [qw(GET -Q -q foo&bar)] });
+cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com -H ),
       'Accept: text/html', 'https://google.com/user//1?foo&bar',
 ], 'GET not escaped');
@@ -107,7 +107,7 @@ cmp_deeply(\@TestResty::curl_options, [
 done_testing;
 
 BEGIN {
-   package TestResty;
+   package TestAdenosine;
 
    use strict;
    use warnings;
@@ -115,7 +115,7 @@ BEGIN {
    use MRO::Compat;
 
    use lib 'lib';
-   use base 'Resty';
+   use base 'App::Adenosine';
 
    our @curl_options;
    our $stdout = '';
@@ -153,4 +153,3 @@ BEGIN {
    sub _get_extra_options { @extra_options }
 }
 
-# to capture: config

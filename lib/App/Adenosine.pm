@@ -1,4 +1,4 @@
-package Resty;
+package App::Adenosine;
 
 use strict;
 use warnings;
