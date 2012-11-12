@@ -25,3 +25,5 @@ function DELETE() {
 function TRACE() {
   adenosine TRACE "$@"
 }
+
+export PATH="$(cd $(dirname $0) && pwd)/bin:$PATH"
