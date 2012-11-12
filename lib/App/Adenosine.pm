@@ -3,6 +3,8 @@ package App::Adenosine;
 use strict;
 use warnings;
 
+# ABSTRACT: Handy CLI HTTP tool
+
 use URI;
 use Getopt::Long qw(:config pass_through no_ignore_case);
 use File::Path 'mkpath';

@@ -1,9 +1,13 @@
-Resty CHANGES
+Adenosine CHANGES
 =============
 
 ### Version 2.0 (2012-11-06)
 
-* Complete reimplementation in perl because this doesn't actually work in zsh at all
+* Rename to Adenosine
+* Complete reimplementation in perl because this doesn't actually work in zsh
+  at all
+* Removed the html filtering (and thus -Z) and converted it to just an
+  separate command (h2t)
 
 ### Version 1.5 (2011-03-20)
 

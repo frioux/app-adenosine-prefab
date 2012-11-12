@@ -1,29 +1,30 @@
-Resty
-=====
+Adenosine
+=========
 
-Resty is a tiny script wrapper for [curl](http://curl.haxx.se/). It
+Adenosine is a tiny script wrapper for [curl](http://curl.haxx.se/). It
 provides a simple, concise shell interface for interacting with
 [REST](http://en.wikipedia.org/wiki/Representational_State_Transfer) services.
-Since it is implemented as functions in your shell and not in its own separate
+Since it is just a command you run in your shell and not in its own separate
 command environment you have access to all the powerful shell tools, such
-as perl, awk, grep, sed, etc. You can use resty in pipelines to process data
+as perl, awk, grep, sed, etc. You can use adenosine in pipelines to process data
 from REST services, and PUT or POST the data right back.  You can even pipe
-the data in and then edit it interactively in your text editor prior to PUT 
+the data in and then edit it interactively in your text editor prior to PUT
 or POST.
 
 Cookies are supported automatically and stored in a file locally. Most of
 the arguments are remembered from one call to the next to save typing. It
-has pretty good defaults for most purposes. Additionally, resty allows you
+has pretty good defaults for most purposes. Additionally, adenosine allows you
 to easily provide your own options to be passed directly to curl, so even
 the most complex requests can be accomplished with the minimum amount of
 command line pain.
 
-[Here is a nice screencast showing resty in action](http://jpmens.net/2010/04/26/resty/) (by Jan-Piet Mens).
+[Here is a nice screencast showing adenosine (née resty) in action](http://jpmens.net/2010/04/26/resty/)
+(by Jan-Piet Mens).
 
 Quick Start
 ===========
 
-You have `curl`, right? Okay. 
+You have `curl`, right? Okay.
 
       $ curl -L http://github.com/micha/resty/raw/master/resty > resty
 
@@ -43,7 +44,7 @@ Make some HTTP requests.
 
       $ GET /blogs.json
       [ {"id" : 1, "title" : "first post", "body" : "This is the first post"}, ... ]
-      
+
       $ PUT /blogs/2.json '{"id" : 2, "title" : "updated post", "body" : "This is the new."}'
       {"id" : 2, "title" : "updated post", "body" : "This is the new."}
 
@@ -55,14 +56,14 @@ Make some HTTP requests.
 Usage
 =====
 
-      source resty [-W] [remote]              # load functions into shell
+      source adenosine-exports [-W] [remote] # load functions into shell
       resty [-v]                              # prints current request URI base
       resty <remote> [OPTIONS]                # sets the base request URI
 
       HEAD [path] [OPTIONS]                   # HEAD request
       OPTIONS [path] [OPTIONS]                # OPTIONS request
-      GET [path] [OPTIONS]                    # GET request 
-      DELETE [path] [OPTIONS]                 # DELETE request 
+      GET [path] [OPTIONS]                    # GET request
+      DELETE [path] [OPTIONS]                 # DELETE request
       PUT [path] [data] [OPTIONS]             # PUT request
       POST [path] [data] [OPTIONS]            # POST request
       TRACE [path] [OPTIONS]                  # TRACE request
@@ -86,7 +87,7 @@ Usage
 Configuration, Data File Locations
 ==================================
 
-Resty creates a few files in either your `${XDG_CONFIG_HOME}` and `${XDG_DATA_HOME}`
+Adenosine creates a few files in either your `${XDG_CONFIG_HOME}` and `${XDG_DATA_HOME}`
 directory (if your linux uses the XDG directory standard) or in the `~/.resty`
 directory, otherwise.
 
@@ -148,7 +149,7 @@ arguments. The URI base will be printed to stdout.
 The Optional Path Parameter
 ===========================
 
-The HTTP verbs (`OPTIONS`, `HEAD`, `GET`, `POST`, `PUT`, and `DELETE`) first 
+The HTTP verbs (`OPTIONS`, `HEAD`, `GET`, `POST`, `PUT`, and `DELETE`) first
 argument is always
 an optional URI path. This path must always start with a `/` character. If
 the path parameter is not provided on the command line, resty will just use
@@ -160,7 +161,7 @@ own "last path".
 URL Encoding Of Path Parameter
 ------------------------------
 
-Resty will always [URL encode]
+Adenosine will always [URL encode]
 (http://www.blooberry.com/indexdot/html/topics/urlencoding.htm) the path,
 except for slashes. (Slashes in path elements need to be manually encoded as
 `%2F`.) This means that the `?`, `=`, and `&` characters will be encoded, as
@@ -209,7 +210,7 @@ Or you can pipe the data from another program, like this:
 
       $ myprog | PUT /blogs/5.json
 
-Or, interestingly, as a filter pipeline with 
+Or, interestingly, as a filter pipeline with
 [jsawk](http://github.com/micha/jsawk):
 
       $ GET /blogs/5.json | jsawk 'this.author="Bob Smith";this.tags.push("news")' | PUT
@@ -252,7 +253,7 @@ can use the `-Z` option, and get the raw output.
 Passing Command Line Options To Curl
 ====================================
 
-Anything after the (optional) `path` and `data` arguments is passed on to 
+Anything after the (optional) `path` and `data` arguments is passed on to
 `curl`.
 
 For example:
@@ -272,7 +273,7 @@ Here are some useful options to try:
   * **-v** verbose output, shows HTTP headers and status on stderr
   * **-j** junk session cookies (refresh cookie-based session)
   * **-u \<username:password\>** HTTP basic authentication
-  * **-H \<header\>** add request header (this option can be added more than 
+  * **-H \<header\>** add request header (this option can be added more than
     once)
 
 Setting The Default Curl Options
@@ -292,7 +293,7 @@ is reset.
 Per-Host/Per-Method Curl Configuration Files
 --------------------------------------------
 
-Resty supports a per-host/per-method configuration file to help you with
+Adenosine supports a per-host/per-method configuration file to help you with
 frequently used curl options. Each host (including the port) can have its
 own configuration file in the _~/.resty_ directory. The file format is
 
@@ -324,7 +325,7 @@ _~/.resty/localhost:8080_
       GET -H "Accept: application/json"
       POST -H "Content-Type: text/plain" -u user:pass
 
-Then any GET or POST requests to localhost:8080 will have the specified 
+Then any GET or POST requests to localhost:8080 will have the specified
 options prepended to the curl command line arguments, saving you from having
 to type them out each time, like this:
 
@@ -346,7 +347,7 @@ Otherwise, the first digit of the response status is returned (i.e., 1 for
 integer---it can't be greater than 255. If you want the exact status code
 you can always just pass the `-v` option to curl.
 
-Using Resty In Shell Scripts
+Using Adenosine In Shell Scripts
 ============================
 
 Since resty creates the REST verb functions in the shell, when using it from a script you must `source` it before you use any of the functions. However, it's likely that you don't want it to be overwriting the resty host history file, and you will almost always want to set the URI base explicitly.
