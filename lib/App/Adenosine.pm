@@ -34,7 +34,6 @@ sub new {
 
    if ($action =~ m/^$verb_regex$/) {
       my $quote = 1;
-      my $history = 1;
       my $interactive_edit = 0;
       my $query = '';
       $self->{verbose} = 0;
@@ -49,7 +48,6 @@ sub new {
       GetOptions (
          Q     => sub { $quote = 0 },
          "q=s" => \$query,
-         W     => sub { $history = 0 },
          V     => \$interactive_edit,
          v     => sub { $self->{verbose} = 1 },
       );
@@ -126,7 +124,7 @@ sub handle_curl_output {
    my ($self, $out, $err, $ret) = @_;
 
    my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
-   $self->stderr($err) if $err && $self->verbose;
+   $self->stderr($err) if $self->verbose;
    $out .= "\n" unless $out =~ m/\n\Z/m;
    $self->stdout($out);
    return if $http_code == 2;

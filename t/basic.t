@@ -131,7 +131,7 @@ BEGIN {
 
    sub _set_uri_base { $uri_base = $_[1] }
    sub _get_uri_base { $uri_base }
-   sub _load_host_method_config { split /\n/, $host_config{$_[1] || ''} }
+   sub _load_host_method_config { split /\n/, $host_config{$_[1]} }
 
    sub new {
       my $self = shift;
