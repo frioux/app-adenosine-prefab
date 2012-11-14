@@ -8,6 +8,7 @@ use Test::Deep;
 
 $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
+my $c = "$ENV{HOME}/.resty/c/google.com";
 
 TestAdenosine->new({ argv => ['http://google.com'] });
 is($TestAdenosine::stdout, "http://google.com*\n", 'http no *');
@@ -59,8 +60,7 @@ BLUU2
 
 my $exit_code = TestAdenosine->new({ argv => ['GET'] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com
-   -c /home/frew/.resty/c/google.com -H ), 'Accept: text/html',
+   qw(curl -sLv -X GET -b), $c, '-c', $c, '-H', 'Accept: text/html',
    'https://google.com/user//1',
 ], 'GET');
 is($TestAdenosine::stdout, $TestAdenosine::curl_stdout, 'output the right stuff!');
@@ -70,46 +70,40 @@ ok(!$exit_code, '200 means exit with 0');
 $TestAdenosine::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
 $exit_code = TestAdenosine->new({ argv => [qw(GET 1 -v)] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com
-   -c /home/frew/.resty/c/google.com -H ), 'Accept: text/html',
+   qw(curl -sLv -X GET -b), $c, '-c', $c, '-H', 'Accept: text/html',
    'https://google.com/user/1/1',
 ], 'GET 1');
 is($exit_code, 5, '500 exits correctly');
-is($TestAdenosine::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '/home/frew/.resty/c/google.com' '-c' '/home/frew/.resty/c/google.com' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
+is($TestAdenosine::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '$c' '-c' '$c' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
 $TestAdenosine::curl_stderr", '-v works');
 
 TestAdenosine->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv {"foo":"bar"} -X POST -b /home/frew/.resty/c/google.com
-      -c /home/frew/.resty/c/google.com
+   qw(curl -sLv {"foo":"bar"} -X POST -b ), $c, '-c', $c, qw(
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
 
 TestAdenosine->new({ argv => [qw(POST 2), '-V'] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b /home/frew/.resty/c/google.com
-      -c /home/frew/.resty/c/google.com
+   qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b ), $c, '-c', $c, qw(
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST -V $data');
 
 TestAdenosine->new({ argv => [qw(HEAD -u)] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv -X HEAD -b /home/frew/.resty/c/google.com
-      -c /home/frew/.resty/c/google.com
+   qw(curl -sLv -X HEAD -b), $c, '-c', $c, qw(
      -u -I https://google.com/user//1),
 ], 'HEAD adds -I');
 
 TestAdenosine->new({ argv => [qw(GET -q foo&bar)] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com
-      -c /home/frew/.resty/c/google.com
+   qw(curl -sLv -X GET -b), $c, '-c', $c, qw(
       -H ), 'Accept: text/html', 'https://google.com/user//1?foo%26bar',
 ], 'GET escaped');
 
 TestAdenosine->new({ argv => [qw(GET -Q -q foo&bar)] });
 cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv -X GET -b /home/frew/.resty/c/google.com
-      -c /home/frew/.resty/c/google.com
+   qw(curl -sLv -X GET -b), $c, '-c', $c, qw(
       -H ), 'Accept: text/html', 'https://google.com/user//1?foo&bar',
 ], 'GET not escaped');
 
