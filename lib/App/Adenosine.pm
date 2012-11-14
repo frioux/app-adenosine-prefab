@@ -79,7 +79,7 @@ sub new {
 
       $query = "?$query" if $query;
 
-      my @curl = @{curl_command({
+      my @curl = @{$self->curl_command({
          method => $action,
          data   => $data,
          cookie_jar => $self->cookie_jar($uri_base),
@@ -181,9 +181,10 @@ sub _get_extra_options {
 }
 
 sub curl_command {
-   my %arg = %{$_[0]};
+   my %arg = %{$_[1]};
 
-   [qw(curl -sLv), $arg{data} || (), '-X', $arg{method}, '-b', $arg{cookie_jar},
+   [qw(curl -sLv), $arg{data} || (), '-X', $arg{method},
+      '-b', $arg{cookie_jar}, '-c', $arg{cookie_jar},
       @{$arg{rest}}, $arg{location}]
 }
 
