@@ -1,1 +1,14 @@
-perl -0007 -MJSON -ne'eval { print to_json(from_json($_, {allow_nonref=>1}),{pretty=>1}); 1 } || print "$_\n"'
+#!/usr/bin/env perl
+
+# PODNAME: pp
+
+# App-PipeFilter is probably worth looking at
+
+use JSON;
+while (<>) {
+   eval {
+      my $j = JSON->new->pretty->allow_nonref;
+      print $j->encode($j->decode($_));
+      1
+   } || print "$_\n"
+}
