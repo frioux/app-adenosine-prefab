@@ -24,20 +24,19 @@ command line pain.
 Quick Start
 ===========
 
-You have `curl`, right? Okay.
+You have `git`, right? Okay.
 
-      $ curl -L http://github.com/micha/resty/raw/master/resty > resty
+      $ git clone http://github.com/frioux/app-adenosine
 
-Source the script before using it. (You can put this line in your `~/.bashrc`
-file if you want, or just paste the contents of the `resty` script right in
-there. Either way works.)
+Source the exports before using it. (You can put this line in your `~/.bashrc`
+file if you want.)
 
-      $ . resty
+      $ . app-adenosine/adenosine-exports
 
 Set the REST host to which you will be making your requests (you can do this
 whenever you want to change hosts, anytime).
 
-      $ resty http://127.0.0.1:8080/data
+      $ adenosine http://127.0.0.1:8080/data
       http://127.0.0.1:8080/data*
 
 Make some HTTP requests.
@@ -53,12 +52,27 @@ Make some HTTP requests.
       $ POST /blogs.json '{"title" : "new post", "body" : "This is the new new."}'
       {"id" : 204, "title" : "new post", "body" : "This is the new new."}
 
+A Work In Progress
+==================
+
+Adenosine was ported to Perl from [resty](https://github.com/micha/resty) due
+to a number of [issues](https://github.com/micha/resty/issues).  Because
+adenosine is not a simple shell function it does not use env vars as much, and
+so is less "persistent" than resty when it comes to various settings.  I'm
+completely willing to fix this by wrapping adenosine with a small shell
+function that sets various environment variables, but I'd rather get it
+released with a few exciting features resty does not have.  With that in mind,
+patches are always welcome.  Please get in touch if you'd like one of the
+currently unsupported resty features to be fixed and I'll certainly do what I
+can to get it working.  Any part of the doc marked with `!!!` is a place to
+look out for an imcompatibility.
+
 Usage
 =====
 
-      source adenosine-exports [-W] [remote] # load functions into shell
-      resty [-v]                              # prints current request URI base
-      resty <remote> [OPTIONS]                # sets the base request URI
+      source adenosine-exports [-W] [remote] # load functions into shell         !!!
+      adenosine [-v]                         # prints current request URI base   !!!
+      adenosine <remote> [OPTIONS]           # sets the base request URI         !!!
 
       HEAD [path] [OPTIONS]                   # HEAD request
       OPTIONS [path] [OPTIONS]                # OPTIONS request
@@ -73,11 +87,9 @@ Usage
       -Q            Don't URL encode the path.
       -q <query>    Send query string with the path. A '?' is prepended to
                     <query> and concatenated onto the <path>.
-      -W            Don't write to history file (only when sourcing script).
+      -W            Don't write to history file (only when sourcing script).    !!!
       -V            Edit the input data interactively in 'vi'. (PUT and POST
                     requests only, with data piped to stdin.)
-      -Z            Raw output. This disables any processing of HTML in the
-                    response.
       -v            Verbose output. When used with the resty command itself
                     this prints the saved curl options along with the current
                     URI base. Otherwise this is passed to curl for verbose
@@ -88,7 +100,7 @@ Configuration, Data File Locations
 ==================================
 
 Adenosine creates a few files in either your `${XDG_CONFIG_HOME}` and `${XDG_DATA_HOME}`
-directory (if your linux uses the XDG directory standard) or in the `~/.resty`
+directory (if your system uses the XDG directory standard) or in the `~/.resty`
 directory, otherwise.
 
 ### Using Existing, Pre-v2.1 Configuration Files With v2.1 ###
@@ -130,20 +142,20 @@ HTTPS URIs
 
 HTTPS URIs can be used, as well. For example:
 
-      $ resty 'https://example.com/doit'
+      $ adenosine 'https://example.com/doit'
       https://example.com/doit*
 
 URI Base History
 ----------------
 
 The URI base is saved to an rc file (_${XDG_CONFIG_HOME}/resty/host_ or _~/.resty/host_)i
-each time it's set, and the last setting is saved in an environment variable
+each time it's set, and the last setting is saved in an environment variable `!!!`
 (`$_resty_host`).  The URI base is read from the rc file when resty starts
 up, but only if the `$_resty_host` environment variable is not set.
 In this way you can make requests to different hosts using resty from
 separate terminals, and have a different URI base for each terminal.
 
-If you want to see what the current URI base is, just run `resty` with no
+If you want to see what the current URI base is, just run `adenosine` with no
 arguments. The URI base will be printed to stdout.
 
 The Optional Path Parameter
@@ -154,7 +166,7 @@ argument is always
 an optional URI path. This path must always start with a `/` character. If
 the path parameter is not provided on the command line, resty will just use
 the last path it was provided with. This "last path" is stored in an
-environment variable (`$_resty_path`), so each terminal basically has its
+environment variable (`$_resty_path`), so each terminal basically has its `!!!`
 own "last path".
 
 
@@ -204,11 +216,11 @@ the command line like this:
 But sometimes you will want to send the request body from a file instead. To
 do that you pipe in the contents of the file:
 
-      $ PUT /blogs/5.json < /tmp/t
+      $ PUT /blogs/5.json < /tmp/t `!!!`
 
 Or you can pipe the data from another program, like this:
 
-      $ myprog | PUT /blogs/5.json
+      $ myprog | PUT /blogs/5.json `!!!`
 
 Or, interestingly, as a filter pipeline with
 [jsawk](http://github.com/micha/jsawk):
@@ -234,21 +246,10 @@ Errors and Output
 =================
 
 For successful 2xx responses, the response body is printed on stdout. You
-can pipe the output to stuff, process it, and then pipe it back to resty,
+can pipe the output to stuff, process it, and then pipe it back to adenosine,
 if you want.
 
 For responses other than 2xx the response body is dumped to stderr.
-
-In either case, if the content type of the response is `text/html`, then
-resty will try to process the response through either `lynx`, `html2text`,
-or, finally, `cat`, depending on which of those programs are available on
-your system.
-
-Raw Output (-Z option)
-----------------------
-
-If you don't want resty to process the output through lynx or html2text you
-can use the `-Z` option, and get the raw output.
 
 Passing Command Line Options To Curl
 ====================================
@@ -347,15 +348,15 @@ Otherwise, the first digit of the response status is returned (i.e., 1 for
 integer---it can't be greater than 255. If you want the exact status code
 you can always just pass the `-v` option to curl.
 
-Using Adenosine In Shell Scripts
+Using Adenosine In Shell Scripts `!!!`
 ============================
 
-Since resty creates the REST verb functions in the shell, when using it from a script you must `source` it before you use any of the functions. However, it's likely that you don't want it to be overwriting the resty host history file, and you will almost always want to set the URI base explicitly.
+Since adenosine creates the REST verb functions in the shell, when using it from a script you must `source` it before you use any of the functions. However, it's likely that you don't want it to be overwriting the adenosine host history file, and you will almost always want to set the URI base explicitly.
 
       #!/usr/bin/env bash
 
-      # Load resty, don't write to the history file, and set the URI base
-      . /path/to/resty -W 'https://myhost.com/data*.json'
+      # Load adenosine, don't write to the history file, and set the URI base
+      . /path/to/app-adenosine -W 'https://myhost.com/data*.json'
 
       # GET the JSON list of users, set each of their 'disabled' properties
       # to 'false', and PUT the modified JSON back
@@ -378,9 +379,7 @@ scripts that make dealing with JSON data easier.
 
     `GET /blogs.json |jsawk -n 'out(this.title)' # prints all the blog titles`
 
-  * The included `pp` script will pretty-print JSON for you. You just need to
-    install the JSON perl module from CPAN or you can use `pypp` if you have
-    python 2.6 installed.
+  * The included `pp` script will pretty-print JSON for you.
 
     `GET /blogs.json |pp # pretty-prints the JSON output from resty`
 
