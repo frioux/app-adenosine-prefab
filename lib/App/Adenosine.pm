@@ -12,13 +12,27 @@ use URI::Escape 'uri_escape';
 use File::Spec::Functions 'splitpath';
 use Path::Class;
 use Text::ParseWords;
+use Scalar::Util 'blessed';
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 
 sub verbose { $_[0]->{verbose} }
+sub plugins { @{$_[0]->{plugins}} }
 
 sub new {
    my ($class, $args) = @_;
+
+   if (my $p = $args->{plugins}) {
+      die "plugins must be an arrayref" unless ref $p && ref $p eq 'ARRAY';
+      $args->{plugins} = [
+         map {;
+            my $ret = $_;
+            $ret = $ret->new unless blessed($ret);
+            $ret;
+         } @{$args->{plugins}}];
+   } else {
+      $args->{plugins} = []
+   }
 
    my $self = { %$args };
 
@@ -124,7 +138,12 @@ sub handle_curl_output {
    my ($self, $out, $err, $ret) = @_;
 
    my ( $http_code ) = ($err =~ m{.*HTTP/1\.[01] (\d)\d\d });
-   $self->stderr($err) if $self->verbose;
+   if ($self->verbose) {
+      my @filters = grep { $_->does('App::Adenosine::Role::FiltersStdErr') }
+         $self->plugins;
+      $err = $_->filter_stderr($err) for @filters;
+      $self->stderr($err)
+   }
    $out .= "\n" unless $out =~ m/\n\Z/m;
    $self->stdout($out);
    return if $http_code == 2;
