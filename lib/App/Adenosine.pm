@@ -130,8 +130,17 @@ sub stderr { print STDERR $_[1] }
 sub capture_curl {
    my ($self, @rest) = @_;
 
-   require Capture::Tiny;
-   Capture::Tiny::capture(sub { system(@rest) });
+   my @wrappers = grep { $_->does('App::Adenosine::Role::WrapsCurlCommand') }
+      $self->plugins;
+   my $wrapped = sub {
+      my @rest = @_;
+      require Capture::Tiny;
+      Capture::Tiny::capture(sub { system(@rest) });
+   };
+   for my $wrapper (@wrappers) {
+      $wrapped = $wrapper->wrap($wrapped)
+   }
+   $wrapped->(@rest);
 }
 
 sub handle_curl_output {
