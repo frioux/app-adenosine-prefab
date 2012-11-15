@@ -89,12 +89,23 @@ has response_status_text_color => (
    is => 'ro',
    default => sub { [qw()] },
 );
+
 has response_ellided_bracket_color => (
    is => 'ro',
    default => sub { [qw(yellow)] },
 );
 
 has response_ellided_body_color => (
+   is => 'ro',
+   default => sub { [qw(blue)] },
+);
+
+has request_ellided_bracket_color => (
+   is => 'ro',
+   default => sub { [qw(yellow)] },
+);
+
+has request_ellided_body_color => (
    is => 'ro',
    default => sub { [qw(blue)] },
 );
@@ -105,6 +116,17 @@ our $methods_re = qr/HEAD|PUT|POST|GET|DELETE|OPTIONS|TRACE/;
 our $request_re = qr<^($methods_re) (.*) (HTTP)/(1\.[01])$>;
 our $response_re = qr<^(HTTP)/(1\.[01]) (\d{3}) (.*)$>;
 
+sub filter_request_ellided_body {
+   my ($self, $pre, $post) = @_;
+
+   if (my @m = $pre =~ $timestamp_re) {
+      $pre = $self->filter_timestamp(@m)
+   }
+
+   return $pre .
+      colored($self->request_ellided_bracket_color, '} ') .
+      colored($self->request_ellided_body_color, $post)
+}
 sub filter_response_ellided_body {
    my ($self, $pre, $post) = @_;
 
@@ -219,6 +241,8 @@ sub filter_stderr {
          $line = $self->filter_request($1, $2)
       } elsif ($line =~ /^(.*){ (.*)$/) {
          $line = $self->filter_response_ellided_body($1, $2)
+      } elsif ($line =~ /^(.*)} (.*)$/) {
+         $line = $self->filter_request_ellided_body($1, $2)
       }
       push @out, $line
    }
