@@ -1,58 +1,89 @@
 package App::Adenosine::Plugin::Rainbow;
 
 use Moo;
-use Term::ANSIColor 'colored';
+use Term::ExtendedColor ':all';
 
 with 'App::Adenosine::Role::FiltersStdErr';
 
+our %old_colormap = (
+   red => 1,
+   green => 2,
+   yellow => 3,
+   blue => 4,
+   purple => 5,
+   cyan => 6,
+   white => 7,
+   gray => 8,
+   bright_red => 9,
+   bright_green => 10,
+   bright_yellow => 11,
+   bright_blue => 12,
+   magenta => 13,
+   bright_cyan => 14,
+   bright_white => 15,
+);
+
+sub colorize {
+   my ($self, $arg, $str) = @_;
+
+   $arg = { fg => $old_colormap{$arg} || $arg };
+   $str = fg($arg->{fg}, $str ) if $arg->{fg};
+   $str = bg($arg->{bg}, $str ) if $arg->{bg};
+   $str = bold($str           ) if $arg->{bold};
+   $str = italic($str         ) if $arg->{italic};
+   $str = underscore($str     ) if $arg->{underscore};
+
+   return $str;
+}
+
 has response_header_colon_color => (
    is => 'ro',
-   default => sub { [qw(blue)] },
+   default => sub { 'blue' },
 );
 
 has response_header_name_color => (
    is => 'ro',
-   default => sub { [qw(cyan)] },
+   default => sub { 'cyan' },
 );
 
 has response_header_value_color => (
    is => 'ro',
-   default => sub { [qw(bold cyan)] },
+   default => sub { 'bright_cyan' },
 );
 
 has request_header_colon_color => (
    is => 'ro',
-   default => sub { [qw(red)] },
+   default => sub { 'red' },
 );
 
 has request_header_name_color => (
    is => 'ro',
-   default => sub { [qw(magenta)] },
+   default => sub { 'purple' },
 );
 
 has request_header_value_color => (
    is => 'ro',
-   default => sub { [qw(bold magenta)] },
+   default => sub { 'magenta' },
 );
 
 has info_star_color => (
    is => 'ro',
-   default => sub { [qw(yellow)] },
+   default => sub { 'yellow' },
 );
 
 has response_bracket_color => (
    is => 'ro',
-   default => sub { [qw(yellow)] },
+   default => sub { 'yellow' },
 );
 
 has request_bracket_color => (
    is => 'ro',
-   default => sub { [qw(yellow)] },
+   default => sub { 'yellow' },
 );
 
 has request_method_color => (
    is => 'ro',
-   default => sub { [qw(red)] },
+   default => sub { 'red' },
 );
 
 has request_uri_color => (
@@ -67,7 +98,7 @@ has request_protocol_color => (
 
 has request_protocol_version_color => (
    is => 'ro',
-   default => sub { [qw(bold white)] },
+   default => sub { 'bright_white' },
 );
 
 has response_protocol_color => (
@@ -77,12 +108,12 @@ has response_protocol_color => (
 
 has response_protocol_version_color => (
    is => 'ro',
-   default => sub { [qw(bold white)] },
+   default => sub { 'bright_white' },
 );
 
 has response_status_code_color => (
    is => 'ro',
-   default => sub { [qw(red)] },
+   default => sub { 'red' },
 );
 
 has response_status_text_color => (
@@ -92,22 +123,22 @@ has response_status_text_color => (
 
 has response_ellided_bracket_color => (
    is => 'ro',
-   default => sub { [qw(yellow)] },
+   default => sub { 'yellow' },
 );
 
 has response_ellided_body_color => (
    is => 'ro',
-   default => sub { [qw(blue)] },
+   default => sub { 'blue' },
 );
 
 has request_ellided_bracket_color => (
    is => 'ro',
-   default => sub { [qw(yellow)] },
+   default => sub { 'yellow' },
 );
 
 has request_ellided_body_color => (
    is => 'ro',
-   default => sub { [qw(blue)] },
+   default => sub { 'blue' },
 );
 our $timestamp_re = qr/^(.*?)(\d\d):(\d\d):(\d\d)\.(\d{6})(.*)$/;
 # this is probably not right...
@@ -124,8 +155,8 @@ sub filter_request_ellided_body {
    }
 
    return $pre .
-      colored($self->request_ellided_bracket_color, '} ') .
-      colored($self->request_ellided_body_color, $post)
+      $self->colorize($self->request_ellided_bracket_color, '} ') .
+      $self->colorize($self->request_ellided_body_color, $post)
 }
 sub filter_response_ellided_body {
    my ($self, $pre, $post) = @_;
@@ -135,31 +166,31 @@ sub filter_response_ellided_body {
    }
 
    return $pre .
-      colored($self->response_ellided_bracket_color, '{ ') .
-      colored($self->response_ellided_body_color, $post)
+      $self->colorize($self->response_ellided_bracket_color, '{ ') .
+      $self->colorize($self->response_ellided_body_color, $post)
 }
 sub filter_response_init {
    my ($self, $proto, $ver, $code, $status, $colors) = @_;
 
-   return colored($colors->{protocol}, $proto) . '/' .
-          colored($colors->{protocol_version}, $ver) . ' ' .
-          colored($colors->{status_code}, $code) . ' ' .
-          colored($colors->{status_text}, $status)
+   return $self->colorize($colors->{protocol}, $proto) . '/' .
+          $self->colorize($colors->{protocol_version}, $ver) . ' ' .
+          $self->colorize($colors->{status_code}, $code) . ' ' .
+          $self->colorize($colors->{status_text}, $status)
 }
 sub filter_request_init {
    my ($self, $method, $uri, $proto, $version, $colors) = @_;
 
-   return colored($colors->{method}, $method) . ' ' .
-          colored($colors->{uri}, $uri) . ' ' .
-          colored($colors->{protocol}, $proto) . '/' .
-          colored($colors->{protocol_version}, $version)
+   return $self->colorize($colors->{method}, $method) . ' ' .
+          $self->colorize($colors->{uri}, $uri) . ' ' .
+          $self->colorize($colors->{protocol}, $proto) . '/' .
+          $self->colorize($colors->{protocol_version}, $version)
 }
 sub filter_header {
    my ($self, $name, $value, $colors) = @_;
 
-   return colored($colors->{name}, $name)  .
-          colored($colors->{colon}, ': ').
-          colored($colors->{value}, $value)
+   return $self->colorize($colors->{name}, $name)  .
+          $self->colorize($colors->{colon}, ': ').
+          $self->colorize($colors->{value}, $value)
 
 }
 sub filter_timestamp {
@@ -175,7 +206,7 @@ sub filter_info {
    }
 
    return $pre .
-      colored($self->info_star_color, '* ') .
+      $self->colorize($self->info_star_color, '* ') .
       $post
 }
 sub filter_response {
@@ -200,7 +231,7 @@ sub filter_response {
       })
    }
    return $pre .
-      colored($self->response_bracket_color, '< ') .
+      $self->colorize($self->response_bracket_color, '< ') .
       $post
 }
 sub filter_request {
@@ -225,7 +256,7 @@ sub filter_request {
       })
    }
    return $pre .
-      colored($self->request_bracket_color, '> ') .
+      $self->colorize($self->request_bracket_color, '> ') .
       $post
 }
 sub filter_stderr {
