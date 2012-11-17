@@ -13,6 +13,7 @@ use File::Spec::Functions 'splitpath';
 use Path::Class;
 use Text::ParseWords;
 use Scalar::Util 'blessed';
+use Module::Runtime 'use_module';
 
 our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 
@@ -27,7 +28,10 @@ sub new {
       $args->{plugins} = [
          map {;
             my $ret = $_;
-            $ret = $ret->new unless blessed($ret);
+            unless (blessed($ret)) {
+               $ret = "App::Adenosine::Plugin$ret" if $ret =~ /^::/;
+               $ret = use_module($ret)->new unless blessed($ret);
+            }
             $ret;
          } @{$args->{plugins}}];
    } else {

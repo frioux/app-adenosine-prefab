@@ -179,6 +179,7 @@ BEGIN {
 
    package Plugin1;
 
+   $INC{'Plugin1.pm'} = __FILE__;
    use Moo;
 
    with 'App::Adenosine::Role::FiltersStdErr';
