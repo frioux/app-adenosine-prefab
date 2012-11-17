@@ -5,11 +5,27 @@ use warnings;
 
 use Test::More;
 use Test::Deep;
+use Test::Fatal;
 
 $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
 my $c = "$ENV{HOME}/.resty/c/google.com";
 
+subtest 'plugins must be an arrayref' => sub {
+   like(exception {
+      TestAdenosine->new({
+         argv => ['http://google.com'],
+         plugins => 'fail',
+      })
+   }, qr/plugins must be an arrayref/, 'scalar');
+
+   like(exception {
+      TestAdenosine->new({
+         argv => ['http://google.com'],
+         plugins => {},
+      })
+   }, qr/plugins must be an arrayref/, 'hashref');
+};
 TestAdenosine->new({ argv => ['http://google.com'] });
 is($TestAdenosine::stdout, "http://google.com*\n", 'http no *');
 is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
@@ -20,11 +36,17 @@ is($TestAdenosine::stdout, "http://google.com*\n", 'just domain');
 is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
 cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options set');
 
-TestAdenosine->new({ argv => [] });
+TestAdenosine->new({
+   argv => [],
+   plugins => [Plugin1->new],
+});
 is($TestAdenosine::stdout, "http://google.com*\n", 'no args');
 cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options remain');
 
-TestAdenosine->new({ argv => ['https://google.com/user/*/1'] });
+TestAdenosine->new({
+   argv => ['https://google.com/user/*/1'],
+   plugins => [qw(Plugin1)],
+});
 is($TestAdenosine::stdout, "https://google.com/user/*/1\n", 'https + *');
 is($TestAdenosine::uri_base, "https://google.com/user/*/1", 'uri_base set');
 cmp_deeply(\@TestAdenosine::extra_options, [], 'extra options cleared');
@@ -154,5 +176,13 @@ BEGIN {
 
    sub _set_extra_options { my $self = shift; @extra_options = @_ }
    sub _get_extra_options { @extra_options }
+
+   package Plugin1;
+
+   use Moo;
+
+   with 'App::Adenosine::Role::FiltersStdErr';
+
+   sub filter_stderr { $_[1] }
 }
 
