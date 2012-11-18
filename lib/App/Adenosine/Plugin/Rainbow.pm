@@ -26,12 +26,18 @@ our %old_colormap = (
 sub colorize {
    my ($self, $arg, $str) = @_;
 
-   $arg = { fg => $old_colormap{$arg} || $arg };
+   $arg = { fg => $arg } unless ref $arg;
+
+   for (qw(fg bg)) {
+      $arg->{$_} = $old_colormap{$arg->{$_}}
+         if $arg->{$_} && exists $old_colormap{$arg->{$_}}
+   }
+
    $str = fg($arg->{fg}, $str ) if $arg->{fg};
    $str = bg($arg->{bg}, $str ) if $arg->{bg};
    $str = bold($str           ) if $arg->{bold};
    $str = italic($str         ) if $arg->{italic};
-   $str = underscore($str     ) if $arg->{underscore};
+   $str = underline($str      ) if $arg->{underline};
 
    return $str;
 }
@@ -88,12 +94,12 @@ has request_method_color => (
 
 has request_uri_color => (
    is => 'ro',
-   default => sub { [] },
+   default => sub { {} },
 );
 
 has request_protocol_color => (
    is => 'ro',
-   default => sub { [] },
+   default => sub { {} },
 );
 
 has request_protocol_version_color => (
@@ -103,7 +109,7 @@ has request_protocol_version_color => (
 
 has response_protocol_color => (
    is => 'ro',
-   default => sub { [] },
+   default => sub { {} },
 );
 
 has response_protocol_version_color => (
@@ -118,7 +124,7 @@ has response_status_code_color => (
 
 has response_status_text_color => (
    is => 'ro',
-   default => sub { [qw()] },
+   default => sub { {} },
 );
 
 has response_ellided_bracket_color => (
