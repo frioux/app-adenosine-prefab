@@ -26,3 +26,22 @@ sub render_duration {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 DESCRIPTION
+
+Appends handy timer information to curl's stderr, giving the user a simple way
+to understand the duration of a requestion.
+
+=method render_duration
+
+Takes a scalar of seconds and renders them as a string.  If you are subclassing
+this plugin to add color coding, for example, you just need to override this
+method.
+
+=method wrap
+
+(internal) wraps the curl command to get timing data and append the duration.

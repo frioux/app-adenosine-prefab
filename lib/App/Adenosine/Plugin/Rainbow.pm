@@ -287,3 +287,156 @@ sub filter_stderr {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 DESCRIPTION
+
+Color codes standard error (diagnostics) from curl.  Highly customizable.
+
+=method colorize
+
+ $p->colorize('red1', 'Christmas') . ' ' . $p->colorize('green1', 'tree!');
+
+C<colorize> is the method used to highlight all the pieces that come from the
+curl output.  It takes two arguments, first a color specification, and next the
+string to be colorized.  The complete color specification is defined as:
+
+ {
+    fg         => $color,
+    bg         => $color,
+    bold       => $is_bold,
+    italic     => $is_italic,
+    underline  => $is_underline,
+ }
+
+All of the keys in the hash are optional.  The values for $color can be found
+at L<Term::ExtendedColor/Standard color map>.  Additionally I've added a form
+of "legacy support" for named 16 color mode. Those colors are actually
+arbitrary and most consoles allow you to redefine them, so the names I gave are
+just the defaults.  My named colors are:
+
+ red
+ green
+ yellow
+ blue
+ purple
+ cyan
+ white
+ gray
+ bright_red
+ bright_green
+ bright_yellow
+ bright_blue
+ magenta
+ bright_cyan
+ bright_white
+
+As a shortcut, if you pass a simple string instead of a hashref it wil be
+explanded to C<< { fg => $str } >>.
+
+Note that unfortunately support for all the attributes are spotty.
+For example on my computer I use tmux 1.6 running within terminator 0.96.
+In this situation I can't use any of the non-color attributes.  Outside of
+tmux C<underline> works, but the others do not.  Similarly, C<bold> only
+seems to work with some colors.  It's pretty frustrating, and experimentation
+seems necesary.
+
+=head2 Overriding colors at runtime
+
+To change a color when you run C<adenosine> instantiate it as follows:
+
+ #!/usr/bin/env perl
+
+ use lib 'path/to/adenosine/lib';
+ use App::Adenosine;
+
+ use App::Adenosine::Plugin::Rainbow;
+ App::Adenosine->new({
+    argv => \@ARGV,
+    plugins => [
+       App::Adenosine::Plugin::Rainbow->new(
+          response_header_name_color => 'orange4',
+          response_header_value_color => 'orange2',
+          response_ellided_body_color => {
+             fg => 'blue12',
+             bg => 'blue16',
+          },
+       ),
+    ],
+ });
+
+=head2 Creating custom themes
+
+To create a custom theme just subclass C<Rainbow> as follows:
+
+ package App::Adennosine::Plugin::Rainbow::Valentine;
+
+ use Moo;
+ extends 'App::Adenosine::Plugin::Rainbow';
+
+ has '+response_header_name_color'  => ( default => sub { 'magenta1'  } );
+ has '+response_header_value_color' => ( default => sub { 'magenta19' } );
+ has '+request_header_name_color'   => ( default => sub { 'magenta7'  } );
+ has '+request_header_value_color'  => ( default => sub { 'magenta25' } );
+
+ 1;
+
+Then use it the same way you use C<Rainbow>:
+
+ ...
+ App::Adenosine->new({ argv => \@ARGV, plugins => ['::Rainbow::Valentine'] })
+
+=head1 COLORABLE SECTIONS
+
+C<Rainbow> splits apart the stderr string from curl and hilights the various
+sections respectively.  The values of the sections are what is passed as
+the first argument to L</colorize>. The names of the sections are:
+
+=over 2
+
+=item * C<response_header_colon_color>
+
+=item * C<response_header_name_color>
+
+=item * C<response_header_value_color>
+
+=item * C<request_header_colon_color>
+
+=item * C<request_header_name_color>
+
+=item * C<request_header_value_color>
+
+=item * C<info_star_color>
+
+=item * C<response_bracket_color>
+
+=item * C<request_bracket_color>
+
+=item * C<request_method_color>
+
+=item * C<request_uri_color>
+
+=item * C<request_protocol_color>
+
+=item * C<request_protocol_version_color>
+
+=item * C<response_protocol_color>
+
+=item * C<response_protocol_version_color>
+
+=item * C<response_status_code_color>
+
+=item * C<response_status_text_color>
+
+=item * C<response_ellided_bracket_color>
+
+=item * C<response_ellided_body_color>
+
+=item * C<request_ellided_bracket_color>
+
+=item * C<request_ellided_body_color>
+
+=back

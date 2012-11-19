@@ -255,3 +255,86 @@ sub host_method_config {
 sub host { URI->new($_[1])->host }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NOTE
+
+The usage docs for C<Adenosine> are in the attached C<README> file.  This
+documentation is for plugins.
+
+=head1 USING PLUGINS
+
+To use plugins you need to create a file called C<adenosine> and put it in
+your path.  It should look like this:
+
+ #!/usr/bin/env perl
+
+ use lib 'path/to/adenosine/lib';
+ use App::Adenosine;
+
+ App::Adenosine->new({
+    argv => \@ARGV,
+    plugins => [qw(::Stopwatch ::Rainbow)],
+ });
+
+If a plugin begins with double colons, as above, it is automatically prefixed
+with C<App::Adenosine::Plugin> and then instantiated with no arguments
+(C<< ->new >>).  For plugins that can take options you may also pass objects.
+So for example the following is also valid:
+
+ ...
+ use App::Adenosine::Plugin::Rainbow;
+ App::Adenosine->new({
+    argv => \@ARGV,
+    plugins => [
+       '::Stopwatch',
+       App::Adenosine::Plugin::Rainbow->new(
+          response_header_name_color => 'orange4',
+       ),
+    ],
+ });
+
+An "autouse" version of adenosine which uses all the plugins in a certain part
+of the filesystem is planned.
+
+=head1 CREATING PLUGINS
+
+C<Adenosine> has two types of plugins.  The plugin system will grow as users
+find more things that need extending, so as with much of OSS, this is a
+scratch-the-itch situation.  If you have a use case for a new plugin hook
+let me know and I'll set it up.
+
+Plugins are just objects that the C<Adenosine> object has.  There are a number
+of interface style roles that the plugin consumes to signal that the plugin
+uses a certain hook.  Note that plugins can consume multiple roles to use more
+than one hook.  The next sections document the roles and their respective hooks.
+
+=head2 C<App::Adenosine::Role::FiltersStdErr>
+
+Only a C<filter_stderr> method needs to be implemented.  It takes a string
+(stderr output from curl) and should return a string.  An existing example of
+a plugin that consumes this role is L<App::Adenosine::Plugin::Rainbow>.
+
+=head2 C<App::Adenosine::Role::WrapsCurlCommand>
+
+Only a C<wrap> method needs to be implemented.  It takes a coderef and should
+return a coderef.  The returned coderef should pass the args it gets to the
+coderef the method got and return out values returned by the coderef.  To be
+more clear, this is the pattern:
+
+ sub wrap {
+    my ($self, $cmd) = @_;
+
+    return sub {
+       # ...
+       my @ret = $cmd->(@_);
+       # ...
+       return @ret;
+    }
+ }
+
+An existing plugin that consumes this role is
+L<App::Adenosine::Plugin::Stopwatch>.
