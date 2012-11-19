@@ -26,4 +26,4 @@ function TRACE() {
   adenosine TRACE "$@"
 }
 
-export PATH="$(cd $(dirname $0) && pwd)/bin:$PATH"
+export PATH="$PATH:$(cd $(dirname $0) && pwd)/bin"
