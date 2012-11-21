@@ -26,12 +26,12 @@ Quick Start
 
 You have `git`, right? Okay.
 
-      $ git clone http://github.com/frioux/app-adenosine
+      $ git clone http://github.com/frioux/app-adenosine-prefab
 
 Source the exports before using it. (You can put this line in your `~/.bashrc`
 file if you want.)
 
-      $ . app-adenosine/adenosine-exports
+      $ . app-adenosine-prefab/adenosine-exports
 
 Set the REST host to which you will be making your requests (you can do this
 whenever you want to change hosts, anytime).
@@ -51,6 +51,19 @@ Make some HTTP requests.
 
       $ POST /blogs.json '{"title" : "new post", "body" : "This is the new new."}'
       {"id" : 204, "title" : "new post", "body" : "This is the new new."}
+
+What's Next?
+============
+
+Check out some of the plugins available for adenosine!  Right now there's just
+two, `Rainbow` and `Stopwatch`.  To use them, edit the `bin/adenosine` file and
+uncomment the plugin lines.
+
+Hacking!
+========
+
+Want to add some features?  Fork the `frioux/app-adenosine` repository and send
+pull requests!
 
 A Work In Progress
 ==================

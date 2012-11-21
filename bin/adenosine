@@ -9,4 +9,10 @@ use rlib;
 
 use App::Adenosine;
 
-App::Adenosine->new({ argv => \@ARGV });
+App::Adenosine->new({
+   argv => \@ARGV,
+   plugins => [
+      #'::Stopwatch',  # Adds timing info to -v
+      #'::Rainbow',    # Adds color coding to -v
+   ],
+});
