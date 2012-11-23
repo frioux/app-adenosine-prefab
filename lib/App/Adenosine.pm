@@ -107,6 +107,16 @@ sub new {
 
       my ($out, $err, $ret) = $self->capture_curl(@curl);
       return $self->handle_curl_output($out, $err, $ret);
+   } elsif ($action eq 'exports') {
+      print <<'SHELL';
+function HEAD() { adenosine HEAD "$@" };
+function OPTIONS() { adenosine OPTIONS "$@" };
+function GET() { adenosine GET "$@" };
+function POST() { adenosine POST "$@" };
+function PUT() { adenosine PUT "$@" };
+function DELETE() { adenosine DELETE "$@" };
+function TRACE() { adenosine TRACE "$@" };
+SHELL
    } else {
       my $uri_base = $self->uri_base($action);
       $self->_set_extra_options(@ARGV);
