@@ -4,6 +4,13 @@
 
 # App-PipeFilter is probably worth looking at
 
+use strict;
+use warnings;
+
+use FindBin '$Bin';
+use lib "$Bin/../lib";
+use lib "$Bin/../extlib/lib/perl5";
+
 use JSON;
 while (<>) {
    eval {
