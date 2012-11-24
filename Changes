@@ -10,6 +10,8 @@ Revision history for {{$dist->name}}
  * Removed the html filtering (and thus -Z) and converted it to just an
    separate command (h2t)
 
+ * Remove pp (temporarily) due to name conflict
+
 1.5 (2011-03-20)
 
  * Curl options can now be specified when calling the resty command to set
