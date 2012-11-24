@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+2.000001  2012-11-24 15:49:06 CST6CDT
+
  * Rename to Adenosine
 
  * Complete reimplementation in perl because this doesn't actually work in zsh
