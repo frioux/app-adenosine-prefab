@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ * Put pp back in dist
+
 2.000001  2012-11-24 15:49:06 CST6CDT
 
  * Rename to Adenosine
