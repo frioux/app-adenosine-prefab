@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+2.001000  2012-12-01 12:02:45 CST6CDT
+
+ * Add configuration file (.adenosinerc.yml) for easier enabling of plugins
+
  * Put pp back in dist
 
 2.000001  2012-11-24 15:49:06 CST6CDT
