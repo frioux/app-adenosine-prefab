@@ -90,7 +90,10 @@ is($TestAdenosine::stdout, $TestAdenosine::curl_stdout, 'output the right stuff!
 ok(!$exit_code, '200 means exit with 0');
 
 $TestAdenosine::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
-$exit_code = TestAdenosine->new({ argv => [qw(GET 1 -v)] });
+$exit_code = TestAdenosine->new({
+   argv => [qw(GET 1 -v)],
+   plugins => [{ '::Plugin2' => {} }]
+});
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, '-H', 'Accept: text/html',
    'https://google.com/user/1/1',
@@ -180,6 +183,15 @@ BEGIN {
    package Plugin1;
 
    $INC{'Plugin1.pm'} = __FILE__;
+   use Moo;
+
+   with 'App::Adenosine::Role::FiltersStdErr';
+
+   sub filter_stderr { $_[1] }
+
+   package App::Adenosine::Plugin::Plugin2;
+
+   $INC{'App/Adenosine/Plugin/Plugin2.pm'} = __FILE__;
    use Moo;
 
    with 'App::Adenosine::Role::FiltersStdErr';

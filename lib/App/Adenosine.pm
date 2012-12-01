@@ -20,6 +20,12 @@ our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
 sub verbose { $_[0]->{verbose} }
 sub plugins { @{$_[0]->{plugins}} }
 
+sub _plugin_name {
+   my ($self, $name) = @_;
+   $name = "App::Adenosine::Plugin$name" if $name =~ /^::/;
+   use_module($name)
+}
+
 sub new {
    my ($class, $args) = @_;
 
@@ -29,8 +35,12 @@ sub new {
          map {;
             my $ret = $_;
             unless (blessed($ret)) {
-               $ret = "App::Adenosine::Plugin$ret" if $ret =~ /^::/;
-               $ret = use_module($ret)->new unless blessed($ret);
+               my @args;
+               if (ref $ret eq 'HASH') {
+                  ($ret, @args) = %$ret;
+               }
+               $ret = $class->_plugin_name($ret);
+               $ret = $ret->new(@args)
             }
             $ret;
          } @{$args->{plugins}}];

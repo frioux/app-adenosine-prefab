@@ -10,14 +10,18 @@ use lib "$Bin/../lib";
 use lib "$Bin/../extlib/lib/perl5";
 
 use App::Adenosine;
-
-App::Adenosine->new({
-   argv => \@ARGV,
-   plugins => [
-      #'::Stopwatch',  # Adds timing info to -v
-      #'::Rainbow',    # Adds color coding to -v
-   ],
+use File::HomeDir;
+use Config::Any;
+use YAML 'LoadFile';
+my $conf = Config::Any->load_files({
+   files   => [File::HomeDir->my_home . '/.adenosinerc.yml'],
+   use_ext => 1,
 });
+
+($conf) = values %{$conf->[0]||{}};
+$conf = $conf || {};
+$conf->{argv} = \@ARGV;
+App::Adenosine->new($conf);
 
 __END__
 
@@ -415,6 +419,32 @@ Here the C<-W> option was used when loading the script to prevent writing
 to the history file and an initial URI base was set at the same time. Then a
 JSON file was fetched, edited using L<jsawk|http://github.com/micha/jsawk>,
 and re-uploaded to the server.
+
+=head1 Application Configuration
+
+Adenosine may be configured by placing a C<YAML> document in
+F<~/.adenosinerc.yml>.  More parts of adenosine will be configurable as time
+goes on, but right now the only real configuration is for plugins.
+
+Adenosine's plugin architecture (documented at
+L<App::Adenosine/USING PLUGINS> and L<App::Adenosine/CREATING PLUGINS>) can be
+used to color code headers, time the request, or more, if you choose to write
+more plugins.  Enabling a plugin is simple with the F<~/.adenosinerc.yml>
+file.  Here is how you would enable both L<App::Adenosine::Plugin::Stopwatch>
+and L<App::Adenosine::Plugin::Rainbow>, including a little bit of extra
+(non-required) configuration to customize some colors for C<::Rainbow>.
+
+ plugins:
+    - ::Stopwatch
+    - ::Rainbow: {
+          request_method_color: cyan
+      }
+
+The following would work if you didn't want to configure C<::Rainbow>
+
+ plugins:
+    - ::Stopwatch
+    - ::Rainbow
 
 =head1 Working With JSON or XML Data
 
