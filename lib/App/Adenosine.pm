@@ -211,6 +211,7 @@ sub _get_uri_base {
    my $self = shift;
 
    my $file = $self->config_location->file('host');
+   return '' unless -f $file->stringify;
    ($file->slurp(chomp => 1))[0]
 }
 

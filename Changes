@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ * Fix setting the host for the first time
+
 2.001000  2012-12-01 12:02:45 CST6CDT
 
  * Add configuration file (.adenosinerc.yml) for easier enabling of plugins
