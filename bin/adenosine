@@ -446,6 +446,12 @@ The following would work if you didn't want to configure C<::Rainbow>
     - ::Stopwatch
     - ::Rainbow
 
+Another option allows the user to disable the XDG based directory structure
+(typically F<~/.config>).  Simply put the following in your
+F<~/.adenosinerc.yml>:
+
+ enable_xdg: 0
+
 =head1 Working With JSON or XML Data
 
 JSON REST web services require some special tools to make them accessible

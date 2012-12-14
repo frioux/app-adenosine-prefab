@@ -10,12 +10,13 @@ use Test::Fatal;
 $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
 my $c = "$ENV{HOME}/.resty/c/google.com";
-
+my @noxdg = (enable_xdg => 0);
 subtest 'plugins must be an arrayref' => sub {
    like(exception {
       TestAdenosine->new({
          argv => ['http://google.com'],
          plugins => 'fail',
+         @noxdg
       })
    }, qr/plugins must be an arrayref/, 'scalar');
 
@@ -23,15 +24,16 @@ subtest 'plugins must be an arrayref' => sub {
       TestAdenosine->new({
          argv => ['http://google.com'],
          plugins => {},
+         @noxdg
       })
    }, qr/plugins must be an arrayref/, 'hashref');
 };
-TestAdenosine->new({ argv => ['http://google.com'] });
+TestAdenosine->new({ argv => ['http://google.com'], @noxdg });
 is($TestAdenosine::stdout, "http://google.com*\n", 'http no *');
 is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
 cmp_deeply(\@TestAdenosine::extra_options, [], 'extra options set');
 
-TestAdenosine->new({ argv => ['google.com', '-v', '-H', 'Foo: Bar'] });
+TestAdenosine->new({ argv => ['google.com', '-v', '-H', 'Foo: Bar'], @noxdg });
 is($TestAdenosine::stdout, "http://google.com*\n", 'just domain');
 is($TestAdenosine::uri_base, "http://google.com*", 'uri_base set');
 cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options set');
@@ -39,6 +41,7 @@ cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra opti
 TestAdenosine->new({
    argv => [],
    plugins => [Plugin1->new],
+   @noxdg,
 });
 is($TestAdenosine::stdout, "http://google.com*\n", 'no args');
 cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra options remain');
@@ -46,6 +49,7 @@ cmp_deeply(\@TestAdenosine::extra_options, ['-v', '-H', 'Foo: Bar'], 'extra opti
 TestAdenosine->new({
    argv => ['https://google.com/user/*/1'],
    plugins => [qw(Plugin1)],
+   @noxdg,
 });
 is($TestAdenosine::stdout, "https://google.com/user/*/1\n", 'https + *');
 is($TestAdenosine::uri_base, "https://google.com/user/*/1", 'uri_base set');
@@ -80,7 +84,7 @@ $TestAdenosine::curl_stdout = <<'BLUU2';
 {"some":"json"}
 BLUU2
 
-my $exit_code = TestAdenosine->new({ argv => ['GET'] });
+my $exit_code = TestAdenosine->new({ argv => ['GET'], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, '-H', 'Accept: text/html',
    'https://google.com/user//1',
@@ -92,7 +96,8 @@ ok(!$exit_code, '200 means exit with 0');
 $TestAdenosine::curl_stderr =~ s[(< HTTP/1\.1 )2][${1}5];
 $exit_code = TestAdenosine->new({
    argv => [qw(GET 1 -v)],
-   plugins => [{ '::Plugin2' => {} }]
+   plugins => [{ '::Plugin2' => {} }],
+   @noxdg,
 });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, '-H', 'Accept: text/html',
@@ -102,36 +107,45 @@ is($exit_code, 5, '500 exits correctly');
 is($TestAdenosine::stderr, "'curl' '-sLv' '-X' 'GET' '-b' '$c' '-c' '$c' '-H' 'Accept: text/html' 'https://google.com/user/1/1'
 $TestAdenosine::curl_stderr", '-v works');
 
-TestAdenosine->new({ argv => [qw(POST 2), '{"foo":"bar"}'] });
+TestAdenosine->new({ argv => [qw(POST 2), '{"foo":"bar"}'], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv {"foo":"bar"} -X POST -b ), $c, '-c', $c, qw(
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
 
-TestAdenosine->new({ argv => [qw(POST 2), '-V'] });
+TestAdenosine->new({ argv => [qw(POST 2), '-V'], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b ), $c, '-c', $c, qw(
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST -V $data');
 
-TestAdenosine->new({ argv => [qw(HEAD -u)] });
+TestAdenosine->new({ argv => [qw(HEAD -u)], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X HEAD -b), $c, '-c', $c, qw(
      -u -I https://google.com/user//1),
 ], 'HEAD adds -I');
 
-TestAdenosine->new({ argv => [qw(GET -q foo&bar)] });
+TestAdenosine->new({ argv => [qw(GET -q foo&bar)], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, qw(
       -H ), 'Accept: text/html', 'https://google.com/user//1?foo%26bar',
 ], 'GET escaped');
 
-TestAdenosine->new({ argv => [qw(GET -Q -q foo&bar)] });
+TestAdenosine->new({ argv => [qw(GET -Q -q foo&bar)], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, qw(
       -H ), 'Accept: text/html', 'https://google.com/user//1?foo&bar',
 ], 'GET not escaped');
 
+{
+local $ENV{XDG_CONFIG_HOME} = "$ENV{HOME}/.config";
+my $c = "$ENV{XDG_CONFIG_HOME}/resty/c/google.com";
+TestAdenosine->new({ argv => [qw(GET foo)], });
+cmp_deeply(\@TestAdenosine::curl_options, [
+   qw(curl -sLv -X GET -b), $c, '-c', $c, qw(
+      -H ), 'Accept: text/html', 'https://google.com/user/foo/1',
+], 'GET not escaped');
+}
 done_testing;
 
 BEGIN {
