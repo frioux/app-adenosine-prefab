@@ -154,7 +154,11 @@ BEGIN {
    use strict;
    use warnings;
 
-   use MRO::Compat;
+   if ($] >= 5.010) {
+     require mro;
+   } else {
+     require MRO::Compat;
+   }
 
    use lib 'lib';
    use base 'App::Adenosine';
