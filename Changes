@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ * Make Term::ExtendedColor optional with better error
  * Remove maint/ from CPAN dist (Tommy Stanton)
  * Fix missing or too low prerews (Tommy Stanton)
  * Do not require MRO::Compat for newer perls

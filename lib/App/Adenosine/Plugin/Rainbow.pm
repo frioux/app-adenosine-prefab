@@ -1,9 +1,20 @@
 package App::Adenosine::Plugin::Rainbow;
 
 use Moo;
-use Term::ExtendedColor ':all';
 
 with 'App::Adenosine::Role::FiltersStdErr';
+use Module::Runtime 'require_module';
+use Try::Tiny;
+
+try {
+   require_module('Term::ExtendedColor')
+} catch {
+   die <<"ERR"
+Term::ExtendedColor must be installed to use ::Rainbow
+
+original error: $_
+ERR
+};
 
 our %old_colormap = (
    red => 1,
@@ -33,11 +44,11 @@ sub colorize {
          if $arg->{$_} && exists $old_colormap{$arg->{$_}}
    }
 
-   $str = fg($arg->{fg}, $str ) if $arg->{fg};
-   $str = bg($arg->{bg}, $str ) if $arg->{bg};
-   $str = bold($str           ) if $arg->{bold};
-   $str = italic($str         ) if $arg->{italic};
-   $str = underline($str      ) if $arg->{underline};
+   $str = Term::ExtendedColor::fg($arg->{fg}, $str ) if $arg->{fg};
+   $str = Term::ExtendedColor::bg($arg->{bg}, $str ) if $arg->{bg};
+   $str = Term::ExtendedColor::bold($str           ) if $arg->{bold};
+   $str = Term::ExtendedColor::italic($str         ) if $arg->{italic};
+   $str = Term::ExtendedColor::underline($str      ) if $arg->{underline};
 
    return $str;
 }
