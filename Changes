@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+2.001006  2013-08-14 21:09:39 CST6CDT
  - Fix tests in Win32 (on the off chance they have curl installed)
  - Abandon RT
 
