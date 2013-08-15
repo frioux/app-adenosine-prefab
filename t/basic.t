@@ -12,6 +12,7 @@ $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
 $ENV{HOME} ||= getcwd;
 my $c = "$ENV{HOME}/.resty/c/google.com";
+$c =~ s(/)(\\)g if $^O eq 'MSWin32';
 my @noxdg = (enable_xdg => 0);
 subtest 'plugins must be an arrayref' => sub {
    like(exception {

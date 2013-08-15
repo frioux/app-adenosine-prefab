@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+ - Fix tests in Win32 (on the off chance they have curl installed)
  - Abandon RT
 
 2.001005  2012-12-28 14:36:46 CST6CDT
