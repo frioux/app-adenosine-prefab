@@ -6,9 +6,11 @@ use warnings;
 use Test::More;
 use Test::Deep;
 use Test::Fatal;
+use Cwd;
 
 $ENV{PATH} = "t/bin:$ENV{PATH}";
 $ENV{EDITOR} = 'bluh';
+$ENV{HOME} ||= getcwd;
 my $c = "$ENV{HOME}/.resty/c/google.com";
 my @noxdg = (enable_xdg => 0);
 subtest 'plugins must be an arrayref' => sub {
