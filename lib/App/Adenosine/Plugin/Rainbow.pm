@@ -2,6 +2,8 @@ package App::Adenosine::Plugin::Rainbow;
 
 use Moo;
 
+# VERSION
+
 with 'App::Adenosine::Role::FiltersStdErr';
 use Module::Runtime 'require_module';
 use Try::Tiny;

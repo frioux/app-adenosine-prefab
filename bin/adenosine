@@ -2,6 +2,8 @@
 
 # PODNAME: adenosine
 
+# VERSION
+
 use strict;
 use warnings;
 
