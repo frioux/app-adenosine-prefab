@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+ - Implement the PATCH HTTP verb (thanks @mdi for GH#6)
 
 2.001006  2013-08-14 21:09:39 CST6CDT
  - Fix tests in Win32 (on the off chance they have curl installed)

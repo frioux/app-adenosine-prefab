@@ -131,6 +131,7 @@ look out for an imcompatibility.
       PUT [path] [data] [OPTIONS]             # PUT request
       POST [path] [data] [OPTIONS]            # POST request
       TRACE [path] [OPTIONS]                  # TRACE request
+      PATCH [path] [OPTIONS]                  # PATCH request
 
       Options:
 
@@ -168,7 +169,8 @@ and then do:
 The request URI base is what the eventual URI to which the requests will be
 made is based on. Specifically, it is a URI that may contain the C<*> character
 one or more times. The C<*> will be replaced with the C<path> parameter in the
-C<OPTIONS>, C<HEAD>, C<GET>, C<POST>, C<PUT>, or C<DELETE> request as described above.
+C<OPTIONS>, C<HEAD>, C<GET>, C<POST>, C<PUT>, C<PATCH> or C<DELETE> request as
+described above.
 
 For example:
 
@@ -206,8 +208,8 @@ arguments. The URI base will be printed to stdout.
 
 =head1 The Optional Path Parameter
 
-The HTTP verbs (C<OPTIONS>, C<HEAD>, C<GET>, C<POST>, C<PUT>, and C<DELETE>) first
-argument is always
+The HTTP verbs (C<OPTIONS>, C<HEAD>, C<GET>, C<POST>, C<PUT>, C<PATCH> and
+C<DELETE>) first argument is always
 an optional URI path. This path must always start with a C</> character. If
 the path parameter is not provided on the command line, adenosine will just use
 the last path it was provided with. This "last path" is stored in an

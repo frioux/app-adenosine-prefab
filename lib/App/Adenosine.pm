@@ -15,7 +15,7 @@ use Text::ParseWords;
 use Scalar::Util 'blessed';
 use Module::Runtime 'use_module';
 
-our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE)';
+our $verb_regex = '(?:HEAD|OPTIONS|GET|DELETE|PUT|POST|TRACE|PATCH)';
 
 sub verbose { $_[0]->{verbose} }
 sub plugins { @{$_[0]->{plugins}} }
@@ -86,7 +86,7 @@ sub new {
 
       my @extra = (@ARGV, $self->_get_extra_options);
       my $wantdata;
-      $wantdata = 1 if $action =~ m/^(?:PUT|POST|TRACE)$/;
+      $wantdata = 1 if $action =~ m/^(?:PUT|POST|TRACE|PATCH)$/;
       if ($wantdata && $interactive_edit) {
          require File::Temp;
          my ($fh, $fn) = File::Temp::tempfile();
@@ -130,6 +130,7 @@ function POST() { adenosine POST "$@"; };
 function PUT() { adenosine PUT "$@"; };
 function DELETE() { adenosine DELETE "$@"; };
 function TRACE() { adenosine TRACE "$@"; };
+function PATCH() { adenosine TRACE "$@"; };
 SHELL
    } else {
       my $uri_base = $self->uri_base($action);
