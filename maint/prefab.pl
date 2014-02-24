@@ -31,7 +31,8 @@ CORE::system(qw(git clone gh:frioux/app-adenosine-prefab ../app-adenosine-prefab
 
    my $data = LoadFile('.travis.yml');
    pop @{$data->{install}} for 1..2;
-   push @{$data->{install}}, 'cpanm Devel::Cover';
+   push @{$data->{install}},
+      'cpanm --quiet --notest Devel::Cover::Report::Coveralls';
    DumpFile('.travis.yml', $data);
    system(qw(git add .travis.yml));
    system(qw(git commit -m), 'mutate .travis.yml');
