@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+2.001007  2014-02-24 13:48:53CST-0600 America/Chicago
  - Implement the PATCH HTTP verb (thanks @mdi for GH#6)
 
 2.001006  2013-08-14 21:09:39 CST6CDT
