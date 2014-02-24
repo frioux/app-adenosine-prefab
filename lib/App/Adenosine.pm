@@ -3,8 +3,6 @@ package App::Adenosine;
 use strict;
 use warnings;
 
-# VERSION
-
 # ABSTRACT: Handy CLI HTTP tool
 
 use URI;

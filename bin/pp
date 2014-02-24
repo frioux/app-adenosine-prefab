@@ -2,8 +2,6 @@
 
 # PODNAME: pp
 
-# VERSION
-
 # App-PipeFilter is probably worth looking at
 
 use strict;

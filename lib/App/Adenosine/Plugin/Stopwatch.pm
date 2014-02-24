@@ -2,8 +2,6 @@ package App::Adenosine::Plugin::Stopwatch;
 
 use Moo;
 
-# VERSION
-
 use Time::HiRes qw(gettimeofday tv_interval);
 
 with 'App::Adenosine::Role::WrapsCurlCommand';
