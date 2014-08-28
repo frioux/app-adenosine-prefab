@@ -8,7 +8,7 @@ use Test::Deep;
 use Test::Fatal;
 use Cwd;
 
-$ENV{PATH} = "t/bin:$ENV{PATH}";
+$ENV{PATH} = $^O eq 'MSWin32' ? "t/bin;$ENV{PATH}" : "t/bin:$ENV{PATH}" ;
 $ENV{EDITOR} = 'bluh';
 $ENV{HOME} ||= getcwd;
 my $c = "$ENV{HOME}/.resty/c/google.com";
@@ -116,11 +116,13 @@ cmp_deeply(\@TestAdenosine::curl_options, [
       --data-binary -u foo:bar https://google.com/user/2/1),
 ], 'POST 2 $data');
 
-TestAdenosine->new({ argv => [qw(POST 2), '-V'], @noxdg });
-cmp_deeply(\@TestAdenosine::curl_options, [
-   qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b ), $c, '-c', $c, qw(
-      --data-binary -u foo:bar https://google.com/user/2/1),
-], 'POST -V $data');
+if ($^O ne 'MSWin32') {
+   TestAdenosine->new({ argv => [qw(POST 2), '-V'], @noxdg });
+   cmp_deeply(\@TestAdenosine::curl_options, [
+      qw(curl -sLv), '["frew","bar","baz"]', qw(-X POST -b ), $c, '-c', $c, qw(
+         --data-binary -u foo:bar https://google.com/user/2/1),
+   ], 'POST -V $data');
+}
 
 TestAdenosine->new({ argv => [qw(HEAD -u)], @noxdg });
 cmp_deeply(\@TestAdenosine::curl_options, [
@@ -143,6 +145,7 @@ cmp_deeply(\@TestAdenosine::curl_options, [
 {
 local $ENV{XDG_CONFIG_HOME} = "$ENV{HOME}/.config";
 my $c = "$ENV{XDG_CONFIG_HOME}/resty/c/google.com";
+$c =~ s(/)(\\)g if $^O eq 'MSWin32';
 TestAdenosine->new({ argv => [qw(GET foo)], });
 cmp_deeply(\@TestAdenosine::curl_options, [
    qw(curl -sLv -X GET -b), $c, '-c', $c, qw(

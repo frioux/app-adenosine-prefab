@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+ - Fix tests on win32
 
 2.001007  2014-02-24 13:48:53CST-0600 America/Chicago
  - Implement the PATCH HTTP verb (thanks @mdi for GH#6)
